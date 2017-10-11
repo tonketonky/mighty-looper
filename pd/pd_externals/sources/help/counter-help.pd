@@ -1,0 +1,16 @@
+#N canvas 699 338 450 300 10;
+#X obj 16 124 counter;
+#X msg 16 37 bang;
+#X msg 31 57 incr;
+#X msg 45 78 decr;
+#X msg 59 101 reset;
+#X floatatom 16 146 5 0 0 0 - - -, f 5;
+#X text 65 35 outputs current counter value;
+#X text 109 101 resets counter value to 0 and outputs it;
+#X text 89 78 decreases counter value and outputs it;
+#X text 76 57 increases counter value and outputs it;
+#X connect 0 0 5 0;
+#X connect 1 0 0 0;
+#X connect 2 0 0 0;
+#X connect 3 0 0 0;
+#X connect 4 0 0 0;
