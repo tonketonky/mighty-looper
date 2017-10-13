@@ -4,38 +4,7 @@
  * This is a sketch for Arduino part of the project "Mighty Looper".
  * Another part is Pure Data patch mighty_looper.pd running on 
  * Raspberry Pi 3 which implements core functionalities and features 
- * of Mighty Looper:
- *    - 2 separate channels each with: 
- *        - volume control 
- *        - toggling playback while recording ON an OFF
- *    - 4 separate tracks for each channel
- *    - individual control of each track involves:  
- *        - recording
- *        - infinite overdubs
- *        - UNDO/REDO function
- *        - toggling playback ON and OFF
- *        - resetting
- *        - adjusting volume
- *    - 2 separate verses possible to switch between
- *    - individual reset and start over for each verse
- *    - switching 2 recording modes:
- *        - Free length mode: the length of the verse is determined 
- *                            by the first track of the verse recorded
- *        - Fixed length mode:  the length of the verse by predetermined
- *                              by setting tempo and time signature, this
- *                              mode requires using "MONO" output mode with
- *                              click (see below)                              
- *    - switching 2 output modes:
- *        - STEREO mode: each channel in a separate output
- *        - MONO mode:  both channels mixed together in both outputs, 
- *                      while one of the outputs (intended for headphones) 
- *                      is capable of turning click ON and OFF in case 
- *                      of "Fixed length" recording mode selected
- *   
- * NOTE:  Each of the signals for controlling tracks (record, playback ON/OFF, 
- *        UNDO/REDO, except for starting and stopping recording of the first 
- *        track of a given verse in "Free length" recording mode) takes effect at the 
- *        beginning of next cycle of the loop. 
+ * of Mighty Looper.
  *    
  * This code provides the following:
  *    - handling inputs from 8 momentary switches (one for each track) 
