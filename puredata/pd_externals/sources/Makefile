@@ -16,7 +16,6 @@ class.sources = $(filter-out $(lib.setup.sources),$(wildcard src/*.c))
 make-lib-executable=yes
 
 # all extra files to be included in binary distribution of the library
-#datafiles = counter-help.pd helloworld-help.pd mighty_looper_lib-meta.pd README.md
 datafiles = \
 $(wildcard help/*.pd) \
 mighty_looper_lib-meta.pd
