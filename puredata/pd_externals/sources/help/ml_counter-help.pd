@@ -1,0 +1,32 @@
+#N canvas 696 342 668 424 10;
+#X floatatom 18 350 5 0 0 0 - - -, f 5;
+#X obj 18 328 ml_counter;
+#X msg 18 148 get p1 ch1 t1;
+#X text 128 141 outputs current counter value for given phrase \, channel
+and track;
+#X text 153 172 increases counter value for given phrase \, channel
+and track and outputs it;
+#X text 172 202 decreases counter value for given phrase \, channel
+and track and outputs it;
+#X msg 33 177 incr p1 ch1 t1;
+#X text 26 10 Two-way multi-counter (16 counters \; 2 phrases x 2 channels
+x 4 tracks). Symbol arguments: pN - phrase number N (allowed: p1 \,
+p2) chN - channel number N (allowed: ch1 \, ch2) tN - track number
+N (allowed: t1 \, t2 \, t3 \, t4) Arguments must be in folowing order:
+pN \, chN \, tN;
+#X msg 47 207 decr p1 ch1 t1;
+#X msg 61 237 reset p1 ch1 t1;
+#X text 182 232 resets counter value to 0 for given phrase \, channel
+and track;
+#X msg 78 268 reset p1 ch1;
+#X text 180 268 resets all counters values to 0 for given phrase and
+channel;
+#X msg 89 296 reset p1 ch1;
+#X text 190 296 resets all counters values to 0 for given phrase;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 6 0 1 0;
+#X connect 8 0 1 0;
+#X connect 9 0 1 0;
+#X connect 11 0 1 0;
+#X connect 13 0 1 0;

@@ -1,5 +1,5 @@
-void counter_setup(void);
+void ml_counter_setup(void);
 
 void mighty_looper_lib_setup(void) {
-  counter_setup();
+  ml_counter_setup();
 }
