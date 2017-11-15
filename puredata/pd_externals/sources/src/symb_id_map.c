@@ -68,6 +68,8 @@ void init_symb_id_map(void) {
 	add_symb_id_pair(gensym("t2"), 1);
 	add_symb_id_pair(gensym("t3"), 2);
 	add_symb_id_pair(gensym("t4"), 3);
+	add_symb_id_pair(gensym("a"), 0);
+	add_symb_id_pair(gensym("b"), 1);
 }
 
 /**
