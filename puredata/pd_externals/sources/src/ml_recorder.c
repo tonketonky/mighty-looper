@@ -65,7 +65,7 @@ void notify_track_manager(t_ml_recorder *x) {
 	SETSYMBOL(x->cmd_args, x->recorded_phrase);
 	SETSYMBOL(x->cmd_args+1, x->recorded_channel);
 	SETSYMBOL(x->cmd_args+2, x->recorded_track);
-	outlet_anything(x->cmd_out, gensym("recording_stopped"), 3, x->cmd_args);
+	outlet_anything(x->cmd_out, gensym("recording_started"), 3, x->cmd_args);
 }
 
 void start_recording(t_ml_recorder *x) {
@@ -116,6 +116,8 @@ void start_recording(t_ml_recorder *x) {
 	x->recorded_track = x->flagged_track;
 
 	x->recorded_alloc_method = x->flagged_alloc_method;
+
+	notify_track_manager(x);
 }
 
 /*******************************************************************************
@@ -152,16 +154,14 @@ void ml_recorder_stop_recording(t_ml_recorder *x, t_symbol *channel, t_symbol *t
 			outlet_anything(x->cmd_out, gensym("stop_dynamic_allocation"), 0, 0);
 		}	else {
 			outlet_symbol(x->cmd_dest_out, gensym("tabwrite_rec"));
-			outlet_symbol(x->cmd_out, gensym("stop"));
+			outlet_anything(x->cmd_out, gensym("stop"), 0, 0);
 		}
-		notify_track_manager(x);		
 	}
 }
 
 void ml_recorder_set_up_new_cycle(t_ml_recorder *x) {
 	if(x->is_recording == 1) {
 		x->is_recording = 0;
-		notify_track_manager(x);
 	}	
 }
 

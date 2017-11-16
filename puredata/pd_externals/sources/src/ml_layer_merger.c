@@ -12,20 +12,20 @@ static t_class *ml_layer_merger_class;
 typedef struct _ml_layer_merger {  
   t_object  x_obj;  
 
-	t_int 		is_flagged; 							// indicates whether layers are flagged for merging
+	t_int 		is_flagged; 											// indicates whether layers are flagged for merging
 
-	t_symbol 	*flagged_phrase; 					// phrase flagged for merging to
-	t_symbol 	*flagged_channel; 				// channel flagged for merging to
-	t_symbol 	*flagged_track; 					// track flagged for merging to
-	t_symbol 	*flagged_version; 				// version flagged for merging to
+	t_symbol 	*flagged_phrase; 									// phrase flagged for merging to
+	t_symbol 	*flagged_channel; 								// channel flagged for merging to
+	t_symbol 	*flagged_track; 									// track flagged for merging to
+	t_symbol 	*flagged_version; 								// version flagged for merging to
 
-	t_int 		flagged_num_of_layers; 		// number of layer to be merged
+	t_int 		flagged_num_of_layers_to_merge; 	// number of layer to be merged
 
-	t_symbol 	*flagged_alloc_method; 		// allocation method for table flagged for merging to
+	t_symbol 	*flagged_alloc_method; 						// allocation method for table flagged for merging to
 
-	t_atom 		cmd_args[5]; 							// array of arguments for commands that are sent out of the object
+	t_atom 		cmd_args[5]; 											// array of arguments for commands that are sent out of the object
 
-	t_outlet 	*cmd_out, *cmd_dest_out; 	// outlets for commands sent out of the object and for symbols that sets their destination
+	t_outlet 	*cmd_out, *cmd_dest_out; 					// outlets for commands sent out of the object and for symbols that sets their destination
 } t_ml_layer_merger;  
 
 
@@ -33,11 +33,11 @@ typedef struct _ml_layer_merger {
  * layers merging management functions
  ******************************************************************/
 
-void flag_merging(t_ml_layer_merger *x, t_symbol *phrase, t_symbol *channel, t_symbol *track, t_symbol *version, t_int num_of_layers, t_symbol *alloc_method) {
+void flag_merging(t_ml_layer_merger *x, t_symbol *phrase, t_symbol *channel, t_symbol *track, t_symbol *version, t_int num_of_layers_to_merge, t_symbol *alloc_method) {
 	x->is_flagged = 1;
 	x->flagged_alloc_method = alloc_method;
 	
-	x->flagged_num_of_layers = num_of_layers;
+	x->flagged_num_of_layers_to_merge = num_of_layers_to_merge;
 
 	x->flagged_phrase = phrase;
 	x->flagged_channel = channel;
@@ -101,7 +101,7 @@ void start_merging(t_ml_layer_merger *x) {
 
 	outlet_anything(x->cmd_out, gensym("stop"), 0, 0);
 
-	if(x->flagged_num_of_layers == 2) {
+	if(x->flagged_num_of_layers_to_merge == 2) {
 	
 		SETSYMBOL(
 			x->cmd_args,
@@ -135,16 +135,16 @@ void ml_layer_merger_flag_merging(t_ml_layer_merger *x, t_symbol *s, int argc, t
 	t_symbol *channel = atom_getsymbol(argv+1);
 	t_symbol *track = atom_getsymbol(argv+2);
 	t_symbol *version = atom_getsymbol(argv+3);
-	t_int num_of_layers = atom_getint(argv+4);
+	t_int num_of_layers_to_merge = atom_getint(argv+4);
 	t_symbol *alloc_method = atom_getsymbol(argv+5);
 
 	if(x->is_flagged == 0) {
-		flag_merging(x, phrase, channel, track, version, num_of_layers, alloc_method);
+		flag_merging(x, phrase, channel, track, version, num_of_layers_to_merge, alloc_method);
 	} else{
 		if(x->flagged_phrase == phrase && x->flagged_channel == channel && x->flagged_track == track) {
 			x->is_flagged = 0;
 		} else {
-			flag_merging(x, phrase, channel, track, version, num_of_layers, alloc_method);
+			flag_merging(x, phrase, channel, track, version, num_of_layers_to_merge, alloc_method);
 		}
 	}
 }

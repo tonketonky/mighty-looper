@@ -197,32 +197,46 @@ void layer_merger_flag_merging(t_ml_track_manager *x, t_symbol *phrase, t_symbol
 	SETFLOAT(x->cmd_args+4, num_of_layers);
 	SETSYMBOL(x->cmd_args+5, alloc_type);
 
-	outlet_anything(x->cmd_out, gensym("flag_merging"), 5, x->cmd_args);
+	outlet_anything(x->cmd_out, gensym("flag_merging"), 6, x->cmd_args);
 }
 
 /********************************************************************
  * layers and versions management functions
  ********************************************************************/
 
+t_symbol *get_last_version(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track) {
+	int ch_id = get_id_for_symb(channel);
+	int t_id = get_id_for_symb(track);
+	
+	t_symbol *last_version;
+
+	if(x->swap_versions_flags[ch_id][t_id] == 0) {
+		last_version = get_version(x, phrase, channel, track);
+	} else {
+		last_version = get_opp_version(get_version(x, phrase, channel, track));
+	}	
+	return last_version;
+}
+
 t_symbol *get_version_for_recording(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track) {
-	return get_opp_version(get_version(x, phrase, channel, track));
+	return get_opp_version(get_last_version(x, phrase, channel, track));
 }
 
 t_int get_layer_num_for_recording(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track) {
-	t_symbol *version = get_version(x, phrase, channel, track);
-	t_int *layer_counter = get_layer_counter(x, phrase, channel, track, version);
 
-	t_int layer_for_recording;
+	t_int *layer_counter = get_layer_counter(x, phrase, channel, track, get_last_version(x, phrase, channel, track));
+
+	t_int layer_num_for_recording;
 
 	if(*layer_counter < 2) {
 		// there is only 0 or 1 layer, next layer number is returned
-		layer_for_recording = *layer_counter + 1;
+		layer_num_for_recording = *layer_counter + 1;
 	} else {
 		// there already are 2 layers, layer number 2 is returned in order to replace the last layer
-		layer_for_recording = 2;
+		layer_num_for_recording = 2;
 	}
 
-	return layer_for_recording;
+	return layer_num_for_recording;
 }
 
 void swap_versions(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track) {
@@ -271,14 +285,14 @@ void flag_unflag_swap_versions(t_ml_track_manager *x, t_symbol *channel, t_symbo
  *******************************************************************************/
 
 void ml_track_manager_flag_recording(t_ml_track_manager *x, t_symbol *channel, t_symbol *track) {
-	t_int p_id = get_id_for_symb(x->current_phrase);
-
+	int p_id = get_id_for_symb(x->current_phrase);
+	
 	t_symbol *rec_alloc_method;
 
-	t_symbol *curr_version = get_version(x, x->current_phrase, channel, track);
+	t_symbol *last_version = get_last_version(x, x->current_phrase, channel, track);
 
-	t_int curr_ver_layer_count = *get_layer_counter(x, x->current_phrase, channel, track, curr_version);
-	t_int next_ver_layer_count = *get_layer_counter(x, x->current_phrase, channel, track, get_opp_version(curr_version));
+	t_int last_ver_layer_count = *get_layer_counter(x, x->current_phrase, channel, track, last_version);
+	t_int next_ver_layer_count = *get_layer_counter(x, x->current_phrase, channel, track, get_opp_version(last_version));
 
 	if(x->track_counters[p_id] == 0) {
 		// 1st track of the phrase -> allocate dynamically
@@ -291,7 +305,7 @@ void ml_track_manager_flag_recording(t_ml_track_manager *x, t_symbol *channel, t
 		 * meaning that the table has already been allocated while undone version was recorded -> no need for allocation
 		 * (undone version has always more layers than current version)
 		 */
-		if(curr_ver_layer_count < 3 && curr_ver_layer_count >= next_ver_layer_count) {
+		if(last_ver_layer_count < 3 && last_ver_layer_count >= next_ver_layer_count) {
 			// currently there are less than 3 layers recorded and undone version does not exist -> need for allocation
 			rec_alloc_method = gensym("static");
 		} else {
@@ -316,17 +330,17 @@ void ml_track_manager_flag_recording(t_ml_track_manager *x, t_symbol *channel, t
 	 * (undone version has always more layers than current version)
 	 */
 
-	if(curr_ver_layer_count != 0) {
+	if(last_ver_layer_count != 0) {
 		// there already is(are) layer(s) -> need for merging
 
 		t_int num_of_layers_to_merge;
 		t_symbol *merge_alloc_method;
 
-		if(curr_ver_layer_count == 1) {
+		if(last_ver_layer_count == 1) {
 			// there already is 1 layer -> merge 1 layer
 				num_of_layers_to_merge = 1;
 
-				if(curr_ver_layer_count > next_ver_layer_count) {
+				if(last_ver_layer_count > next_ver_layer_count) {
 					// undone version does not exist -> need for allocation
 					merge_alloc_method = gensym("static");
 				} else {
@@ -342,20 +356,20 @@ void ml_track_manager_flag_recording(t_ml_track_manager *x, t_symbol *channel, t
 	}
 }
 
-void ml_track_manager_recording_stopped(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track) {
+void ml_track_manager_recording_started(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track) {
 
-	// this happens before swapping versions after recording therefore previous version is still current one and new version is opposite to it
-	t_symbol *prev_version = get_version(x, phrase, channel, track);
-	t_symbol *new_version = get_opp_version(prev_version);
+	// this happens before swapping versions after recording therefore last version is still current one and new version is opposite to it
+	t_symbol *last_version = get_version(x, phrase, channel, track);
+	t_symbol *new_version = get_opp_version(last_version);
 
 	t_int *new_ver_layer_counter = get_layer_counter(x, phrase, channel, track, new_version);
-	t_int *prev_ver_layer_counter = get_layer_counter(x, phrase, channel, track, prev_version);
+	t_int *last_ver_layer_counter = get_layer_counter(x, phrase, channel, track, last_version);
 
-	// new version layer count is previous version layer count incremented by 1
-	*new_ver_layer_counter = *prev_ver_layer_counter + 1;
+	// new version layer count is last version layer count incremented by 1
+	*new_ver_layer_counter = *last_ver_layer_counter + 1;
 
-	// now versions are swapped
-	swap_versions(x, phrase, channel, track);	
+	// flag swapping versions on new cycle
+	flag_unflag_swap_versions(x, channel, track);
 }
 
 void ml_track_manager_swap_phrases(t_ml_track_manager *x) {
@@ -433,8 +447,8 @@ void ml_track_manager_setup(void) {
 		A_DEFSYMBOL, 0);
 
 	class_addmethod(ml_track_manager_class,
-		(t_method)ml_track_manager_recording_stopped,
-		gensym("recording_stopped"),
+		(t_method)ml_track_manager_recording_started,
+		gensym("recording_started"),
 		A_DEFSYMBOL,
 		A_DEFSYMBOL,
 		A_DEFSYMBOL, 0);
