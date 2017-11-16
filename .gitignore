@@ -1,6 +1,7 @@
 # compiled library files
 puredata/pd_externals/sources/src/*.o
 puredata/pd_externals/sources/*.pd_linux
+puredata/pd_externals/sources/src/*.swp
 
 # library build directory
 puredata/pd_externals/mighty_looper_lib
