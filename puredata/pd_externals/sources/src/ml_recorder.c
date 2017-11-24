@@ -60,12 +60,27 @@ void flag_track(t_ml_recorder *x, t_symbol *phrase, t_symbol *channel, t_symbol 
  * output commands functions
  ******************************************************************/
 
-void notify_track_manager(t_ml_recorder *x) {
+void notify_about_started_recording(t_ml_recorder *x) {
+	SETSYMBOL(x->cmd_args, x->recorded_channel);
+	SETSYMBOL(x->cmd_args+1, x->recorded_track);
+	t_symbol *cmd = gensym("recording_started");	
+	// notify track manager
 	outlet_symbol(x->cmd_dest_out, gensym("track_manager"));
-	SETSYMBOL(x->cmd_args, x->recorded_phrase);
-	SETSYMBOL(x->cmd_args+1, x->recorded_channel);
-	SETSYMBOL(x->cmd_args+2, x->recorded_track);
-	outlet_anything(x->cmd_out, gensym("recording_started"), 3, x->cmd_args);
+	outlet_anything(x->cmd_out, cmd, 2, x->cmd_args);
+
+	// notify arduino signal handler
+	outlet_symbol(x->cmd_dest_out, gensym("arduino_signal_handler"));
+	outlet_anything(x->cmd_out, cmd, 2, x->cmd_args);
+}
+
+void notify_about_stopped_recording(t_ml_recorder *x) {
+	SETSYMBOL(x->cmd_args, x->recorded_channel);
+	SETSYMBOL(x->cmd_args+1, x->recorded_track);
+	t_symbol *cmd = gensym("recording_stopped");	
+
+	// notify arduino signal handler
+	outlet_symbol(x->cmd_dest_out, gensym("arduino_signal_handler"));
+	outlet_anything(x->cmd_out, cmd, 2, x->cmd_args);
 }
 
 void start_recording(t_ml_recorder *x) {
@@ -117,7 +132,7 @@ void start_recording(t_ml_recorder *x) {
 
 	x->recorded_alloc_method = x->flagged_alloc_method;
 
-	notify_track_manager(x);
+	notify_about_started_recording(x);
 }
 
 /*******************************************************************************
@@ -156,12 +171,14 @@ void ml_recorder_stop_recording(t_ml_recorder *x, t_symbol *channel, t_symbol *t
 			outlet_symbol(x->cmd_dest_out, gensym("tabwrite_rec"));
 			outlet_anything(x->cmd_out, gensym("stop"), 0, 0);
 		}
+		notify_about_stopped_recording(x);
 	}
 }
 
 void ml_recorder_set_up_new_cycle(t_ml_recorder *x) {
 	if(x->is_recording == 1) {
 		x->is_recording = 0;
+		notify_about_stopped_recording(x);
 	}	
 }
 

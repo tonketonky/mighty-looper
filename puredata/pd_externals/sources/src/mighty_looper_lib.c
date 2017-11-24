@@ -3,6 +3,7 @@ void ml_table_allocator_setup(void);
 void ml_recorder_setup(void);
 void ml_layer_merger_setup(void);
 void ml_player_setup(void);
+void ml_arduino_signal_handler_setup(void);
 
 void mighty_looper_lib_setup(void) {
 	ml_track_manager_setup();
@@ -10,4 +11,5 @@ void mighty_looper_lib_setup(void) {
 	ml_recorder_setup();
 	ml_layer_merger_setup();
 	ml_player_setup();
+	ml_arduino_signal_handler_setup();
 }

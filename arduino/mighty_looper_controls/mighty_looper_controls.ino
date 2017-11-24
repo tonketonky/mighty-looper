@@ -5,37 +5,12 @@
  * Another part is Pure Data patch mighty_looper.pd running on 
  * Raspberry Pi 3 which implements core functionalities and features 
  * of Mighty Looper.
- *    
- * This code provides the following:
- *    - handling inputs from 8 momentary switches (one for each track) 
- *      that can produce 3 different signals:
- *          - single press  - signal for toggling playback ON and OFF
- *                          - also signal for starting and stopping 
- *                            recording of the first track of a given 
- *                            verse in "Free length" recording mode 
- *          - double press  - signal for starting and stopping recording
- *          - long press    - signal for UNDO/REDO last recorded layer 
- *    - handling inputs from 13 potentiometers:
- *        - 8 pots for adjusting track volumes (one for each)
- *        - 2 pots for adjusting input channel volumes (one for each)
- *        - 1 pot for adjusting click volume in "Fixed length" recording mode
- *        - 2 pots for adjusting overall output channel volumes (one for each)
- *    - handling inputs of 5 lever switches:
- *        - 1 for switching between "Free length" and "Fixed length" recording mode
- *        - 1 for switching between "STEREO" and "MONO" output mode
- *        - 1 for turning click ON and OFF in "Fixed length" recording mode
- *        - 2 for togging channel playback while recording ON and OFF (one for each)
- *    - displaying loop progress for each track playing back and flags for 
- *      tracks marked for recording/playback ON or OFF/UNDO or REDO 8-digit
- *      7-segment display (MAX7219)
- *    - communicating with PD patch migthy_looper.pd via serial port
- *    
- * 
+ *
  */
 
-// button pins
-const byte trackButtonPins[8] = {2, 3, 4, 5, 6, 7, 8, 9};
+#include "MlButtons.h"
 
+/* BKP OF CODE TO BE MODIFIED AND USED LATER - BEGIN 
 // 8-digit 7-semgent display (MAX7219) pins 
 const byte MAX7219_DIN  = 10;
 const byte MAX7219_CS   = 11;
@@ -74,63 +49,74 @@ byte looping = 0;
 
 byte tempo = 100;
 byte beat[2] = {4, 4};
+BKP OF CODE TO BE MODIFIED AND USED LATER - END */
 
-byte buttonStates = 0b11111111;
-byte lastButtonStates = 0b11111111;
+MlTrackButton trackButtons[16] = {
+  MlTrackButton(2, "r", "ch1", "t1"),
+  MlTrackButton(3, "p", "ch1", "t1"),
+  MlTrackButton(4, "r", "ch1", "t2"),
+  MlTrackButton(5, "p", "ch1", "t2"),
+  MlTrackButton(6, "r", "ch1", "t3"),
+  MlTrackButton(7, "p", "ch1", "t3"),
+  MlTrackButton(8, "r", "ch1", "t4"),
+  MlTrackButton(9, "p", "ch1", "t4"),
+  MlTrackButton(10, "r", "ch2", "t1"),
+  MlTrackButton(11, "p", "ch2", "t1"),
+  MlTrackButton(12, "r", "ch2", "t2"),
+  MlTrackButton(13, "p", "ch2", "t2"),
+  MlTrackButton(14, "r", "ch2", "t3"),
+  MlTrackButton(15, "p", "ch2", "t3"),
+  MlTrackButton(16, "r", "ch2", "t4"),
+  MlTrackButton(17, "p", "ch2", "t4")
+ };
+/*
+MlTrackButton button1(2, "r", "ch1", "t1");
+MlTrackButton button2(3, "p", "ch1", "t1");
 
-byte trackButtonPressedCounters[8] = {0, 0, 0 ,0 ,0 ,0 ,0, 0};
-unsigned long trackButtonPressedTimes[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+MlTrackButton button3(4, "r", "ch1", "t2");
+MlTrackButton button4(5, "p", "ch1", "t2");
 
-unsigned long trackButtonDoublePressDelay = 500;
-unsigned long trackButtonLongPressTime = 500;
+MlTrackButton button5(6, "r", "ch1", "t3");
+MlTrackButton button6(7, "p", "ch1", "t3");
+*/
 
+/* BKP OF CODE TO BE MODIFIED AND USED LATER - BEGIN
 byte tracksLooping = 0b00000000;
 byte tracksRecording = 0b00000000;
 byte tracksMarkedForLoop = 0b00000000; 
 byte tracksMarkedForRec = 0b00000000; 
 byte tracksMarkedForUndo = 0b00000000; 
-
-unsigned long lastDebounceTimes[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-unsigned long debounceDelay = 10;
+BKP OF CODE TO BE MODIFIED AND USED LATER - END */
 
 void setup() {
-  for(byte buttonId = 0; buttonId < 8; buttonId++) {
-    pinMode(trackButtonPins[buttonId], INPUT);
-    digitalWrite(trackButtonPins[buttonId], HIGH);
-  }
-  
+/* BKP OF CODE TO BE MODIFIED AND USED LATER - BEGIN
   pinMode(MAX7219_DIN, OUTPUT);   // serial data-in
   pinMode(MAX7219_CS, OUTPUT);    // chip-select, active low    
   pinMode(MAX7219_CLK, OUTPUT);   // serial clock
   digitalWrite(MAX7219_CS, HIGH);
 
+  resetMAX7219();
+
   beatDuration = 60000 / tempo;
   loopPhaseDuration = beatDuration * beat[0] / 6;
-  
-  Serial.begin(9600);
-
-  Serial.print("loop beat duration: ");
-  Serial.println(beatDuration);
-
-  Serial.print("loop phase duration: ");
-  Serial.println(loopPhaseDuration);
-  
-  resetMAX7219();
+*/
+  Serial.begin(9600); 
 }
 
 void loop() {
-  
-  for(byte buttonId = 0; buttonId < 8; buttonId++) {
-    // temporarily until all buttons are connected
-    if(buttonId != 3 && buttonId !=7) {
-      readTrackButton(buttonId);
+  //BKP resetMAX7219();
+
+  for(int id = 0; id < 16; id++) {
+    if(trackButtons[id].update()) {
+      Serial.print(trackButtons[id].getSignal());
     }
   }
 
-  updateLoopProgress();
-  updateMAX7219(); 
+  // BKP updateLoopProgress();
+  // BKP updateMAX7219(); 
 }
 
+/* BKP OF CODE TO BE MODIFIED AND USED LATER - END
 void updateLoopProgress() {
   if(looping == 1) {
     if(millis() - beatStartTime > beatDuration) {
@@ -155,98 +141,8 @@ void updateLoopProgress() {
   }
 }
 
-byte readTrackButton(byte buttonId) {
-  if(trackButtonPressedCounters[buttonId] == 1 & millis() - trackButtonPressedTimes[buttonId] >= trackButtonDoublePressDelay) {
-    trackButtonPressedCounters[buttonId] = 0;
-  }
-  // read the state of the switch into a local variable:
-  byte reading = digitalRead(trackButtonPins[buttonId]);
 
-  // check to see if you just pressed the button
-  // (i.e. the input went from LOW to HIGH),  and you've waited
-  // long enough since the last press to ignore any noise:
 
-  // If the switch changed, due to noise or pressing:
-  if (reading != bitRead(lastButtonStates, buttonId)) {
-    // reset the debouncing timer
-    lastDebounceTimes[buttonId] = millis();
-  }
-
-  if((millis() - lastDebounceTimes[buttonId]) > debounceDelay) {
-    // whatever the reading is at, it's been there for longer
-    // than the debounce delay, so take it as the actual current state:
-
-    // if the button state has changed:
-    if(reading != bitRead(buttonStates, buttonId)) {
-      bitWrite(buttonStates, buttonId, reading); 
-      
-      // only handle button pressed event if the new button state is LOW
-      if(bitRead(buttonStates, buttonId) == LOW) {
-        trackButtonPressed(buttonId);  
-      } else {
-        trackButtonReleased(buttonId);
-      }
-    }
-  }
-  
-  // save the reading.  Next time through the loop,
-  // it'll be the lastButtonState:
-  bitWrite(lastButtonStates, buttonId, reading);
-}
-
-void trackButtonPressed(byte buttonId) {
-  Serial.println("button pressed");
-  if(trackButtonPressedCounters[buttonId] == 0) {
-    trackButtonPressedTimes[buttonId] = millis();
-  }
-}
-
-void trackButtonReleased(byte buttonId) {
-  Serial.println("button released");
-  if(trackButtonPressedCounters[buttonId] == 0 & millis() - trackButtonPressedTimes[buttonId] > trackButtonLongPressTime) {
-    handleTrackButtonLongPressed(buttonId);
-  } else {
-    switch(trackButtonPressedCounters[buttonId]) {
-      case 0:
-        handleTrackButtonSinglePress(buttonId);
-        trackButtonPressedCounters[buttonId]++;
-        break;
-      case 1:
-        if(millis() - trackButtonPressedTimes[buttonId] < trackButtonDoublePressDelay) {
-          trackButtonPressedCounters[buttonId] = 0;
-          undoTrackButtonSinglePress(buttonId);
-          handleTrackButtonDoublePressed(buttonId);
-        }
-        break;
-      default:
-        break;
-     }
-  }
-}
-
-void handleTrackButtonSinglePress(byte buttonId) {
-  Serial.println("single press");
-  if(looping == 0) {
-    startLooping();
-    bitWrite(tracksLooping, buttonId, bitRead(tracksLooping, buttonId) ^ 1); // inverse bit
-  } else {
-    markUnmarkTrackForLoop(buttonId);
-  }
-}
-
-void undoTrackButtonSinglePress(byte buttonId) {
-  Serial.println("single press undo");
-  markUnmarkTrackForLoop(buttonId);
-}
-
-void handleTrackButtonDoublePressed(byte buttonId) {
-  Serial.println("double press");
-  markUnmarkTrackForRec(buttonId);
-}
-
-void handleTrackButtonLongPressed(byte buttonId) {
-  Serial.println("long press");
-}
 
 void markUnmarkTrackForLoop(byte trackNum) {
   bitWrite(tracksMarkedForLoop, trackNum, bitRead(tracksMarkedForLoop, trackNum) ^ 1); // inverse bit 
@@ -298,3 +194,5 @@ void resetMAX7219() {
   setRegister(MAX7219_REG_DECODE, 0b00000000);  // non-decode mode for all digits
   setRegister(MAX7219_REG_SHUTDOWN, ON);
 }
+
+BKP OF CODE TO BE MODIFIED AND USED LATER - END */

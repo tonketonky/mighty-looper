@@ -356,14 +356,14 @@ void ml_track_manager_flag_recording(t_ml_track_manager *x, t_symbol *channel, t
 	}
 }
 
-void ml_track_manager_recording_started(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track) {
+void ml_track_manager_recording_started(t_ml_track_manager *x, t_symbol *channel, t_symbol *track) {
 
 	// this happens before swapping versions after recording therefore last version is still current one and new version is opposite to it
-	t_symbol *last_version = get_version(x, phrase, channel, track);
+	t_symbol *last_version = get_version(x, x->current_phrase, channel, track);
 	t_symbol *new_version = get_opp_version(last_version);
 
-	t_int *new_ver_layer_counter = get_layer_counter(x, phrase, channel, track, new_version);
-	t_int *last_ver_layer_counter = get_layer_counter(x, phrase, channel, track, last_version);
+	t_int *new_ver_layer_counter = get_layer_counter(x, x->current_phrase, channel, track, new_version);
+	t_int *last_ver_layer_counter = get_layer_counter(x, x->current_phrase, channel, track, last_version);
 
 	// new version layer count is last version layer count incremented by 1
 	*new_ver_layer_counter = *last_ver_layer_counter + 1;
@@ -449,7 +449,6 @@ void ml_track_manager_setup(void) {
 	class_addmethod(ml_track_manager_class,
 		(t_method)ml_track_manager_recording_started,
 		gensym("recording_started"),
-		A_DEFSYMBOL,
 		A_DEFSYMBOL,
 		A_DEFSYMBOL, 0);
 
