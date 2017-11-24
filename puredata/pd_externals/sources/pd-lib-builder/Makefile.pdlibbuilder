@@ -493,7 +493,7 @@ ifeq ($(system), Linux)
   pdincludepath := $(wildcard /usr/include/pd)
   extension = pd_linux
   cpp.flags := -DUNIX
-  c.flags := -fPIC
+  c.flags := -fPIC -std=c99
   c.ldflags := -rdynamic -shared -fPIC -Wl,-rpath,"\$$ORIGIN",--enable-new-dtags
   c.ldlibs := -lc -lm
   cxx.flags := -fPIC -fcheck-new
