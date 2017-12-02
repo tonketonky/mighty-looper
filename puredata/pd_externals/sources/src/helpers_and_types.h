@@ -1,3 +1,8 @@
+#define PHRASE_1 gensym("p1")
+#define PHRASE_2 gensym("p2")
+#define VERSION_A gensym("a")
+#define VERSION_B gensym("b")
+
 typedef enum{
 	FREE_LENGTH,
 	FIXED_LENGTH,

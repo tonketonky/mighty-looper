@@ -6,9 +6,6 @@
 #include "stdlib.h"
 #include "string.h"
 
-#define PHRASE1 gensym("p1")
-#define PHRASE2 gensym("p2")
-
 // pointer to ml_arduino_signal_handler class
 static t_class *ml_arduino_signal_handler_class;  
  

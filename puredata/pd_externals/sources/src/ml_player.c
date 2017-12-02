@@ -3,9 +3,6 @@
 #include "helpers_and_types.h"
 #include "stdlib.h"
 
-#define PHRASE1 gensym("p1")
-#define PHRASE2 gensym("p2")
-
 // pointer to ml_player class
 static t_class *ml_player_class;  
  
@@ -149,7 +146,7 @@ void *ml_player_new(void) {
 
 	init_symb_id_map();
 	
-	x->current_phrase = PHRASE1;
+	x->current_phrase = PHRASE_1;
 
 	x->channel_symbs[0] = gensym("ch1");
 	x->channel_symbs[1] = gensym("ch2");

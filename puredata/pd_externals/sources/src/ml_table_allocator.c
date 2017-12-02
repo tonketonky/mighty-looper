@@ -2,9 +2,6 @@
 #include "symb_id_map.h"
 #include "helpers_and_types.h"
 
-#define PHRASE1 gensym("p1")
-#define PHRASE2 gensym("p2")
-
 // allocation statuses 
 enum {
 	STOPPED,
@@ -197,8 +194,8 @@ void ml_table_allocator_add_table(t_ml_table_allocator *x, t_symbol *phrase, t_s
 
 void ml_table_allocator_set_tempo(t_ml_table_allocator *x, t_floatarg tempo) {
 	x->tempo = tempo;
-	recalc_beat_size(x, PHRASE1);
-	recalc_beat_size(x, PHRASE2);
+	recalc_beat_size(x, PHRASE_1);
+	recalc_beat_size(x, PHRASE_2);
 }
 
 void ml_table_allocator_set_beat_note_length(t_ml_table_allocator *x, t_symbol *phrase, t_floatarg beat_note_length) {
@@ -241,8 +238,8 @@ void *ml_table_allocator_new(void) {
 
 	x->tempo = 60;
 
-	ml_table_allocator_set_beat_note_length(x, PHRASE1, 4);
-	ml_table_allocator_set_beat_note_length(x, PHRASE2, 4);
+	ml_table_allocator_set_beat_note_length(x, PHRASE_1, 4);
+	ml_table_allocator_set_beat_note_length(x, PHRASE_2, 4);
 
 	x->tracks_sizes[0] = 0;
 	x->tracks_sizes[1] = 0;

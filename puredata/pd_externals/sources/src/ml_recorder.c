@@ -3,9 +3,6 @@
 #include "helpers_and_types.h"
 #include "stdlib.h"
 
-#define PHRASE1 gensym("p1")
-#define PHRASE2 gensym("p2")
-
 // pointer to ml_recorder class
 static t_class *ml_recorder_class;  
  

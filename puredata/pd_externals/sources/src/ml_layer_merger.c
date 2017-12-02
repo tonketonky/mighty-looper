@@ -2,9 +2,6 @@
 #include "symb_id_map.h"
 #include "helpers_and_types.h"
 
-#define PHRASE1 gensym("p1")
-#define PHRASE2 gensym("p2")
-
 // pointer to ml_layer_merger class
 static t_class *ml_layer_merger_class;  
  

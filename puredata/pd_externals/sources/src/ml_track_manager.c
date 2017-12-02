@@ -3,11 +3,6 @@
 #include "helpers_and_types.h"
 #include "stdlib.h"
 
-#define PHRASE_1 gensym("p1")
-#define PHRASE_2 gensym("p2")
-#define VERSION_A gensym("a")
-#define VERSION_B gensym("b")
-
 // pointer to ml_track_manager class
 static t_class *ml_track_manager_class;  
  
