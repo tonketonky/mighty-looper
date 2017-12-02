@@ -2,7 +2,7 @@
 #include "sig_cmd_map.h"
 #include "cmd_dest_map.h"
 #include "symb_id_map.h"
-#include "helpers.h"
+#include "helpers_and_types.h"
 #include "stdlib.h"
 #include "string.h"
 

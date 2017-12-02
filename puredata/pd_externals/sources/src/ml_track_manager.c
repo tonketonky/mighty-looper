@@ -1,6 +1,6 @@
 #include "m_pd.h"  
 #include "symb_id_map.h"
-#include "helpers.h"
+#include "helpers_and_types.h"
 #include "stdlib.h"
 
 #define PHRASE_1 gensym("p1")
@@ -173,7 +173,7 @@ void player_set_looping(t_ml_track_manager *x, t_symbol *channel, t_symbol *trac
 	outlet_anything(x->cmd_out, gensym("set_looping"), 3, x->cmd_args);
 }
 
-void recorder_flag_recording(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track, t_symbol *alloc_type, t_int countdown) {
+void recorder_flag_recording(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track, allocation_method alloc_method, t_int countdown) {
 	outlet_symbol(x->cmd_dest_out, gensym("recorder"));
 
 	SETSYMBOL(x->cmd_args, phrase);
@@ -181,13 +181,13 @@ void recorder_flag_recording(t_ml_track_manager *x, t_symbol *phrase, t_symbol *
 	SETSYMBOL(x->cmd_args+2, track);
 	SETFLOAT(x->cmd_args+3, get_layer_num_for_recording(x, phrase, channel, track));
 	SETSYMBOL(x->cmd_args+4, get_version_for_recording(x, phrase, channel, track));	
-	SETSYMBOL(x->cmd_args+5, alloc_type);
+	SETFLOAT(x->cmd_args+5, alloc_method);
 	SETFLOAT(x->cmd_args+6, countdown);
 
 	outlet_anything(x->cmd_out, gensym("flag_recording"), 7, x->cmd_args);
 }
 
-void layer_merger_flag_merging(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track, t_int num_of_layers, t_symbol *alloc_type) {
+void layer_merger_flag_merging(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track, t_int num_of_layers, allocation_method alloc_method) {
 	outlet_symbol(x->cmd_dest_out, gensym("layer_merger"));
 
 	SETSYMBOL(x->cmd_args, phrase);
@@ -195,7 +195,7 @@ void layer_merger_flag_merging(t_ml_track_manager *x, t_symbol *phrase, t_symbol
 	SETSYMBOL(x->cmd_args+2, track);
 	SETSYMBOL(x->cmd_args+3, get_version_for_recording(x, phrase, channel, track));	
 	SETFLOAT(x->cmd_args+4, num_of_layers);
-	SETSYMBOL(x->cmd_args+5, alloc_type);
+	SETFLOAT(x->cmd_args+5, alloc_method);
 
 	outlet_anything(x->cmd_out, gensym("flag_merging"), 6, x->cmd_args);
 }
@@ -287,7 +287,7 @@ void flag_unflag_swap_versions(t_ml_track_manager *x, t_symbol *channel, t_symbo
 void ml_track_manager_flag_recording(t_ml_track_manager *x, t_symbol *channel, t_symbol *track) {
 	int p_id = get_id_for_symb(x->current_phrase);
 	
-	t_symbol *rec_alloc_method;
+	allocation_method rec_alloc_method;
 
 	t_symbol *last_version = get_last_version(x, x->current_phrase, channel, track);
 
@@ -295,8 +295,8 @@ void ml_track_manager_flag_recording(t_ml_track_manager *x, t_symbol *channel, t
 	t_int next_ver_layer_count = *get_layer_counter(x, x->current_phrase, channel, track, get_opp_version(last_version));
 
 	if(x->track_counters[p_id] == 0) {
-		// 1st track of the phrase -> allocate dynamically
-		rec_alloc_method = gensym("dynamic");
+		// 1st track of the phrase -> allocate in free-length method
+		rec_alloc_method = FREE_LENGTH;
 	} else {
 		// not 1st track of the phrase 
 
@@ -306,11 +306,11 @@ void ml_track_manager_flag_recording(t_ml_track_manager *x, t_symbol *channel, t
 		 * (undone version has always more layers than current version)
 		 */
 		if(last_ver_layer_count < 3 && last_ver_layer_count >= next_ver_layer_count) {
-			// currently there are less than 3 layers recorded and undone version does not exist -> need for allocation
-			rec_alloc_method = gensym("static");
+			// currently there are less than 3 layers recorded and undone version does not exist -> need for allocation, use fixed-length method
+			rec_alloc_method = FIXED_LENGTH;
 		} else {
 			// first 3 layers are already recorded or undone version exists -> next layer will be recorded to already allocated table -> no need for allocation
-			rec_alloc_method = gensym("none");
+			rec_alloc_method = NONE;
 		}
 	}
 
@@ -334,23 +334,23 @@ void ml_track_manager_flag_recording(t_ml_track_manager *x, t_symbol *channel, t
 		// there already is(are) layer(s) -> need for merging
 
 		t_int num_of_layers_to_merge;
-		t_symbol *merge_alloc_method;
+		allocation_method merge_alloc_method;
 
 		if(last_ver_layer_count == 1) {
 			// there already is 1 layer -> merge 1 layer
-				num_of_layers_to_merge = 1;
+			num_of_layers_to_merge = 1;
 
-				if(last_ver_layer_count > next_ver_layer_count) {
-					// undone version does not exist -> need for allocation
-					merge_alloc_method = gensym("static");
-				} else {
-					// undone version exists -> no need for allocation
-					merge_alloc_method = gensym("none");
-				}
+			if(last_ver_layer_count > next_ver_layer_count) {
+				// undone version does not exist -> need for allocation, use fixed-length method
+				merge_alloc_method = FIXED_LENGTH;
 			} else {
+				// undone version exists -> no need for allocation
+				merge_alloc_method = NONE;
+			}
+		} else {
 			// there already are 2 or more layers -> merge last 2 layers; no need for allocation
 			num_of_layers_to_merge = 2;
-			merge_alloc_method = gensym("none");
+			merge_alloc_method = NONE;
 		}
 		layer_merger_flag_merging(x, x->current_phrase, channel, track, num_of_layers_to_merge, merge_alloc_method);
 	}

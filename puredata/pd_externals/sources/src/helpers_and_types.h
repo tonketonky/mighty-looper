@@ -1,3 +1,9 @@
+typedef enum{
+	FREE_LENGTH,
+	FIXED_LENGTH,
+	NONE
+} allocation_method;
+
 t_symbol *get_opp_phrase(t_symbol *phrase);
 t_symbol *get_opp_version(t_symbol *version);
 void symb_2_string(t_symbol *symbol, char *string);

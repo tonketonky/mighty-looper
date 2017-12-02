@@ -1,37 +1,75 @@
 #include "m_pd.h"  
 #include "symb_id_map.h"
-#include "helpers.h"
+#include "helpers_and_types.h"
 
 #define PHRASE1 gensym("p1")
 #define PHRASE2 gensym("p2")
+
+// allocation statuses 
+enum {
+	STOPPED,
+	RUNNING,
+	FLAGGED_STOP
+};
+
+typedef struct {
+	t_symbol *phrase;
+	t_symbol *channel;
+	t_symbol *track;
+	t_int layer;
+	t_symbol *version;
+	t_symbol *table_name;
+} table;
+
+/* NOTE: 
+ * PD seems to produce audible glitches when table is resized by big number of samples. Because of this table is
+ * at first allocated to small number of samples (N = 192 by default) and then dynamically reallocated every N samples by this number of
+ * samples (when metro outside of this object sends bang). Simultaneously table size is recalculated and just stored to
+ * table_size each beat to appropriate size (according to beat size in samples). When allocation stops table is resized to the size 
+ * that was calculated and stored in table_size. However PD produces audible glitches  also when resizing multiple
+ * tables by small number of samples at once. For this reason only a single table is reallocated every N samples while
+ * tables are changing each turn. This means that each table is actually reallocated every N*num_of_tables_for_alloc samples 
+ * and therefore tables are initially allocated to number of samples calculated as N*num_of_tables_for_alloc in order to
+ * keep sufficient table size while table is waiting for its turn to be reallocated. 
+ * 
+ * By using this mechanism audio seems be free of glitches caused by reallocating at latency as low as 5 ms when running
+ * on Raspberry Pi 3 with Audioinjector soundcard.
+ */
 
 // pointer to ml_table_allocator class
 static t_class *ml_table_allocator_class;  
  
 // data space for ml_table_allocator class
 typedef struct _ml_table_allocator {  
-  t_object  x_obj;  
-	t_int 		tracks_sizes[2]; 					// 2 size holders for ALL tracks per phrase; 2 phrases x 1 tracks size
+  t_object  					x_obj;  
+	t_int 							tracks_sizes[2]; 					// 2 size holders for ALL tracks per phrase; 2 phrases x 1 tracks size
 	
-	t_int 		tempo; 										// tempo in bpm
-	t_int 		beat_note_lengths[2]; 		// lengths of the beat notes (time signature denominator); 2 phrases x 1 beat note length;  whole=1, half=2, quarter=4
+	t_int 							tmp_size; 								// dynamically allocated size is stored here, after allocation stops table is resized to calculated size
+	t_int 							samples_per_resize; 			// number of samples by which tmp_size is extended every time when resizing metro bangs
+
+	t_int 							tempo; 										// tempo in bpm
+	t_int 							beat_note_lengths[2]; 		// lengths of the beat notes (time signature denominator); 2 phrases x 1 beat note length;  whole=1, half=2, quarter=4
 														
-	t_int 		beat_sizes[2];						// number of samples per 1 beat; 2 phrases x 1 beat size
-	t_int 		sample_rate; 							// samples per second
+	t_int 							beat_sizes[2];						// number of samples per 1 beat; 2 phrases x 1 beat size
+	t_int 							sample_rate; 							// samples per second
 
-	t_int 	 	beat_counts[2]; 					// number of beats per cycle for phrase; 2 phrases x 1 beat count
+	t_int 	 						beat_counters[2]; 				// number of beats per cycle for phrase; 2 phrases x 1 beat count
 
-	t_int 		is_dynamic_allocation; 		// indicated whether currently recorded track is dynamically reallocated  
+	t_int 							allocation_status; 				// current status of allocation process  
+	allocation_method 	allocation_method; 				// allocation method
 
-	t_symbol 	*dyn_alloc_phrase; 				// corresponding phrase for dynamically allocated table
-	t_symbol 	*dyn_alloc_channel; 			// corresponding channel for dynamically allocated table
-	t_symbol 	*dyn_alloc_track; 				// corresponding track for dynamically allocated table
-	t_int 	 	dyn_alloc_layer; 					// corresponding layer for dynamically allocated table
-	t_symbol 	*dyn_alloc_version; 			// corresponding version for dynamically allocated table
+	table 							tables_for_alloc[4]; 			// tables being allocated
+	t_int 							num_of_tables_for_alloc; 	// number of tables being allocated
+	t_symbol 						*phrases_for_alloc[2]; 		// all phrases to which allocated tables belong
+	t_int 							num_of_phrases_for_alloc; // number of all  phrases to which allocated tables belong
 
-	t_atom 		cmd_args[3]; 							// array of arguments for commands that are sent out of the object
+	t_int 							next_table_to_alloc; 			/* on resizing metro bang always a single table is reallocated, if there are multiple tables for allocation 
+																									 each has its own turn and this variable holds the next table's id 
+																									 (this is because of performance reasons) */
 
-	t_outlet 	*cmd_out, *cmd_dest_out; 	// outlets for commands sent out of the object and for symbols that sets their destination
+	t_atom 							cmd_args[3]; 							// array of arguments for commands that are sent out of the object
+
+	t_outlet 						*cmd_out, *cmd_dest_out; 	// outlets for commands sent out of the object and for symbols that sets their destination
 } t_ml_table_allocator;  
 
 /********************************************************************
@@ -55,20 +93,9 @@ void recalc_beat_size(t_ml_table_allocator *x, t_symbol *phrase) {
  * output commands functions
  ***********************************************************************/
 
-void resize_track(t_ml_table_allocator *x, t_symbol *phrase, t_symbol *channel, t_symbol *track, t_int layer, t_symbol *version, t_int new_size) {
-	outlet_symbol(x->cmd_dest_out, gensym("resize"));
-	SETSYMBOL(
-		x->cmd_args, 
-		get_table_name_symb(
-			phrase, 
-			channel, 
-			track, 
-			layer,
-			version
-		)
-	);
-	SETFLOAT(x->cmd_args+1, new_size);
-	outlet_list(x->cmd_out, &s_list, 2, x->cmd_args);
+void switch_resizing_metro(t_ml_table_allocator *x, t_int running) {
+	outlet_symbol(x->cmd_dest_out, gensym("resizing_metro"));
+	outlet_float(x->cmd_out, running);
 }
 
 void click_set_beat_count(t_ml_table_allocator *x, t_int beat_count) {
@@ -78,40 +105,94 @@ void click_set_beat_count(t_ml_table_allocator *x, t_int beat_count) {
 }
 
 /*******************************************************************************
+ * allocator internal functions
+ *******************************************************************************/
+
+void resize_track(t_ml_table_allocator *x, t_symbol *table_name, t_int new_size) {
+	t_garray *array = (t_garray *)pd_findbyclass(table_name, garray_class);
+	garray_resize(array, new_size);
+}
+
+void stop_allocation(t_ml_table_allocator *x) {
+	// stop metro that produces bangs to resize table
+	switch_resizing_metro(x, 0);
+	x->allocation_status = STOPPED;
+
+	// in case when tables for 2 phrases are being allocated their size will be identical thus the size and beat count for the first phrase will be used
+	t_int p_id = get_id_for_symb(x->phrases_for_alloc[0]);
+	
+	// after allocation stops resize tables to the size calculated by number of beats in the track
+	for(int i = 0; i < x->num_of_tables_for_alloc; i++) {
+		resize_track(x, x->tables_for_alloc[i].table_name, x->tracks_sizes[p_id]);
+	}
+
+	// reset counters
+	x->num_of_tables_for_alloc = 0;
+	x->num_of_phrases_for_alloc = 0;
+	x->next_table_to_alloc = 0;
+}
+
+/*******************************************************************************
  * ml_table_allocator class methods
  *******************************************************************************/
 
-void ml_table_allocator_start_dynamic_allocation(t_ml_table_allocator *x, t_symbol *phrase, t_symbol *channel, t_symbol *track, t_floatarg layer, t_symbol *version) {
-	x->is_dynamic_allocation = 1;
+void ml_table_allocator_start_allocation(t_ml_table_allocator *x, t_floatarg alloc_method) {
+	x->allocation_status = RUNNING;
 
-	t_int p_id = get_id_for_symb(phrase);
-	t_int *tracks_size = &x->tracks_sizes[p_id];
+	// set tmp_size to 1 samples_per_resize so it will be alway one chunk size ahead
+	x->tmp_size = x->num_of_tables_for_alloc * x->samples_per_resize;
+	
+	for(int i = 0; i < x->num_of_tables_for_alloc; i++) {
+		resize_track(x, x->tables_for_alloc[i].table_name, x->tmp_size);
+	}
 
-	*tracks_size = x->beat_sizes[p_id];
+	// turn on metro that produces bang to resize table every 192 samples
+	switch_resizing_metro(x, 1);
 
-	resize_track(x, phrase, channel, track, layer, version, *tracks_size);
-
-	x->dyn_alloc_phrase = phrase;
-	x->dyn_alloc_channel = channel;
-	x->dyn_alloc_track = track;
-	x->dyn_alloc_layer = layer;
-	x->dyn_alloc_version = version;
+	x->allocation_method = alloc_method;
 }
 
-void ml_table_allocator_stop_dynamic_allocation(t_ml_table_allocator *x) {
-	x->is_dynamic_allocation = 0;
-			
-	t_int p_id = get_id_for_symb(x->dyn_alloc_phrase);
-	x->tracks_sizes[p_id] -= x->beat_sizes[p_id];
-	resize_track(x, x->dyn_alloc_phrase, x->dyn_alloc_channel, x->dyn_alloc_track, x->dyn_alloc_layer, x->dyn_alloc_version, x->tracks_sizes[p_id]);
-	click_set_beat_count(x, x->beat_counts[p_id]);
+void ml_table_allocator_flag_stop_allocation(t_ml_table_allocator *x) {
+	x->allocation_status = FLAGGED_STOP;
+	// TODO: move all beat counting to click when implemented in library
+	click_set_beat_count(x, x->beat_counters[get_id_for_symb(x->phrases_for_alloc[0])]);
 }
 
-void ml_table_allocator_allocate_track(t_ml_table_allocator *x, t_symbol *phrase, t_symbol *channel, t_symbol *track, t_floatarg layer, t_symbol *version) {
-	t_int p_id = get_id_for_symb(phrase);
-	t_int *tracks_size = &x->tracks_sizes[p_id];
+void ml_table_allocator_bang(t_ml_table_allocator *x) {
+	/* these are bangs produced by metro every N samples (defined by samples_per_resize), 
+		 resize track by adding number of samples stored in samples_per_resize on each bang 
+		 (this is because of performance reasons) */
+	x->tmp_size += x->samples_per_resize;
 
-	resize_track(x, phrase, channel, track, layer, version, *tracks_size);
+	// resize next table
+	resize_track(x, x->tables_for_alloc[x->next_table_to_alloc++].table_name, x->tmp_size);
+	if(x->next_table_to_alloc == x->num_of_tables_for_alloc) {
+		// the resized table was the last in the list, set next_table_to_alloc to the first one
+		x->next_table_to_alloc = 0;
+	}
+}
+
+void ml_table_allocator_add_table(t_ml_table_allocator *x, t_symbol *phrase, t_symbol *channel, t_symbol *track, t_floatarg layer, t_symbol *version) {
+	table tbl = { 
+		.phrase = phrase, 
+		.channel = channel,
+		.track = track,
+		.layer = layer,
+		.version = version,
+		.table_name = get_table_name_symb(phrase, channel, track, layer, version)
+	};
+	x->tables_for_alloc[x->num_of_tables_for_alloc++] = tbl;
+
+	if(x->num_of_phrases_for_alloc == 0) {
+		// first phrase added, increment count and store it
+		x->phrases_for_alloc[(x->num_of_phrases_for_alloc)++] = phrase;
+	} else if(x->num_of_phrases_for_alloc == 1) {
+		// there already is 1 phrase added
+		if(x->phrases_for_alloc[x->num_of_phrases_for_alloc] != phrase) {
+			// currently added phrase is different from the one already added, increment count and store it
+			x->phrases_for_alloc[(x->num_of_phrases_for_alloc)++] = phrase;
+		}
+	}
 }
 
 void ml_table_allocator_set_tempo(t_ml_table_allocator *x, t_floatarg tempo) {
@@ -127,11 +208,23 @@ void ml_table_allocator_set_beat_note_length(t_ml_table_allocator *x, t_symbol *
 }
 
 void ml_table_allocator_new_beat(t_ml_table_allocator *x) {
-	if(x->is_dynamic_allocation == 1) {
-		t_int p_id = get_id_for_symb(x->dyn_alloc_phrase);
-		x->tracks_sizes[p_id] += x->beat_sizes[p_id];
-		resize_track(x, x->dyn_alloc_phrase, x->dyn_alloc_channel, x->dyn_alloc_track, x->dyn_alloc_layer, x->dyn_alloc_version, x->tracks_sizes[p_id]);
-		x->beat_counts[p_id]++;	
+	if(x->allocation_method == FREE_LENGTH) {
+		if(x->allocation_status == RUNNING) {
+			// add beat size to appropriate tracks size(s) and increment beat counter(s) during free-length allocation 
+			for(int i = 0; i < x->num_of_phrases_for_alloc; i++) {
+				t_int p_id = get_id_for_symb(x->phrases_for_alloc[i]);
+
+				x->tracks_sizes[p_id] += x->beat_sizes[p_id];
+				x->beat_counters[p_id]++;	
+			}
+		}	
+	}
+}
+
+void ml_table_allocator_set_up_new_cycle(t_ml_table_allocator *x) {
+	// allocation always stops at the end of the cycle regardless when recording actually stops 
+	if(x->allocation_status == RUNNING || x->allocation_status == FLAGGED_STOP) {
+		stop_allocation(x);
 	}
 }
 
@@ -154,10 +247,18 @@ void *ml_table_allocator_new(void) {
 	x->tracks_sizes[0] = 0;
 	x->tracks_sizes[1] = 0;
 
-	x->beat_counts[0] = 0;
-	x->beat_counts[1] = 0;
+	x->tmp_size = 0;
+	x->samples_per_resize = 192;
 
-	x->is_dynamic_allocation = 0;
+	x->num_of_tables_for_alloc = 0;
+	x->num_of_phrases_for_alloc = 0;
+	
+	x->next_table_to_alloc = 0;
+	
+	x->beat_counters[0] = 0;
+	x->beat_counters[1] = 0;
+
+	x->allocation_status = STOPPED;
 
 	// outlets
 	x->cmd_out = outlet_new(&x->x_obj, 0);
@@ -186,21 +287,19 @@ void ml_table_allocator_setup(void) {
         CLASS_DEFAULT, 0);  
 
   class_addmethod(ml_table_allocator_class, 
-		(t_method)ml_table_allocator_start_dynamic_allocation,
-		gensym("start_dynamic_allocation"),
-		A_DEFSYMBOL,
-		A_DEFSYMBOL,
-		A_DEFSYMBOL,
-		A_DEFFLOAT,
-		A_DEFSYMBOL, 0);
+		(t_method)ml_table_allocator_start_allocation,
+		gensym("start_allocation"),
+		A_DEFFLOAT, 0);
 
 	class_addmethod(ml_table_allocator_class,
-		(t_method)ml_table_allocator_stop_dynamic_allocation,
-		gensym("stop_dynamic_allocation"), 0);
+		(t_method)ml_table_allocator_flag_stop_allocation,
+		gensym("flag_stop_allocation"), 0);
 
-	 class_addmethod(ml_table_allocator_class, 
-		(t_method)ml_table_allocator_allocate_track,
-		gensym("allocate"),
+	class_addbang(ml_table_allocator_class, ml_table_allocator_bang);
+
+	class_addmethod(ml_table_allocator_class,
+		(t_method)ml_table_allocator_add_table,
+		gensym("add_table"),
 		A_DEFSYMBOL,
 		A_DEFSYMBOL,
 		A_DEFSYMBOL,
@@ -221,4 +320,8 @@ void ml_table_allocator_setup(void) {
 	class_addmethod(ml_table_allocator_class,
 		(t_method)ml_table_allocator_new_beat,
 		gensym("new_beat"), 0);
+
+	class_addmethod(ml_table_allocator_class,
+		(t_method)ml_table_allocator_set_up_new_cycle,
+		gensym("set_up_new_cycle"), 0);
 }

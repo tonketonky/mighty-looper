@@ -1,6 +1,6 @@
 #include "m_pd.h"  
 #include "symb_id_map.h"
-#include "helpers.h"
+#include "helpers_and_types.h"
 #include "stdlib.h"
 
 #define PHRASE1 gensym("p1")
