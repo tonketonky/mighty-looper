@@ -97,10 +97,16 @@ void start_recording(t_ml_recorder *x) {
 
 		outlet_anything(x->cmd_out, gensym("add_table"), 5, x->cmd_args);
 
+		// start allocation with flagged allocation method
 		SETFLOAT(x->cmd_args, x->flagged_alloc_method);
-	
-		// start allocation
 		outlet_anything(x->cmd_out, gensym("start_allocation"), 1, x->cmd_args);
+	
+		if(x->flagged_alloc_method == FREE_LENGTH) {
+			// in case of free-length allocation method start counting beats by click
+			outlet_symbol(x->cmd_dest_out, gensym("click"));
+			SETSYMBOL(x->cmd_args, x->flagged_phrase);
+			outlet_anything(x->cmd_out, gensym("start_counting_beats"), 1, x->cmd_args);
+		}
 	}
 
 	outlet_symbol(x->cmd_dest_out, gensym("tabwrite_rec"));
@@ -164,6 +170,9 @@ void ml_recorder_stop_recording(t_ml_recorder *x, t_symbol *channel, t_symbol *t
 			// now flag allocation to stop at the end of the cycle (set_up_new_cycle signal)
 			outlet_symbol(x->cmd_dest_out, gensym("table_allocator"));
 			outlet_anything(x->cmd_out, gensym("flag_stop_allocation"), 0, 0);
+			// stop counting beats by click	
+			outlet_symbol(x->cmd_dest_out, gensym("click"));
+			outlet_anything(x->cmd_out, gensym("stop_counting_beats"), 0, 0);
 		}	else {
 			// recording stops now, change recording status and send notification
 			x->is_recording = 0;

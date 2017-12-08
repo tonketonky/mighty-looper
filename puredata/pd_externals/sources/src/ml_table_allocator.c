@@ -50,8 +50,6 @@ typedef struct _ml_table_allocator {
 	t_int 							beat_sizes[2];						// number of samples per 1 beat; 2 phrases x 1 beat size
 	t_int 							sample_rate; 							// samples per second
 
-	t_int 	 						beat_counters[2]; 				// number of beats per cycle for phrase; 2 phrases x 1 beat count
-
 	t_int 							allocation_status; 				// current status of allocation process  
 	allocation_method 	allocation_method; 				// allocation method
 
@@ -93,12 +91,6 @@ void recalc_beat_size(t_ml_table_allocator *x, t_symbol *phrase) {
 void switch_resizing_metro(t_ml_table_allocator *x, t_int running) {
 	outlet_symbol(x->cmd_dest_out, gensym("resizing_metro"));
 	outlet_float(x->cmd_out, running);
-}
-
-void click_set_beat_count(t_ml_table_allocator *x, t_int beat_count) {
-	outlet_symbol(x->cmd_dest_out, gensym("click"));
-	SETFLOAT(x->cmd_args, beat_count);
-	outlet_anything(x->cmd_out, gensym("set_beat_count"), 1, x->cmd_args);
 }
 
 /*******************************************************************************
@@ -151,8 +143,6 @@ void ml_table_allocator_start_allocation(t_ml_table_allocator *x, t_floatarg all
 
 void ml_table_allocator_flag_stop_allocation(t_ml_table_allocator *x) {
 	x->allocation_status = FLAGGED_STOP;
-	// TODO: move all beat counting to click when implemented in library
-	click_set_beat_count(x, x->beat_counters[get_id_for_symb(x->phrases_for_alloc[0])]);
 }
 
 void ml_table_allocator_bang(t_ml_table_allocator *x) {
@@ -212,7 +202,6 @@ void ml_table_allocator_new_beat(t_ml_table_allocator *x) {
 				t_int p_id = get_id_for_symb(x->phrases_for_alloc[i]);
 
 				x->tracks_sizes[p_id] += x->beat_sizes[p_id];
-				x->beat_counters[p_id]++;	
 			}
 		}	
 	}
@@ -252,9 +241,6 @@ void *ml_table_allocator_new(void) {
 	
 	x->next_table_to_alloc = 0;
 	
-	x->beat_counters[0] = 0;
-	x->beat_counters[1] = 0;
-
 	x->allocation_status = STOPPED;
 
 	// outlets
