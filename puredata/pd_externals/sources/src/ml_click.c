@@ -133,8 +133,11 @@ void ml_click_bang(t_ml_click *x) {
 	if(x->beat_counts[p_id] != 0 && x->is_counting_beats == 0) {
 		// beat count for the phrase is already set
 		if((x->current_beat) > x->beat_counts[p_id]) {
-			// current beat number exceeded  current phrase beat count, reset it to 1 and set set_up_new_cycle and new_cycle
+			// current beat number exceeded  current phrase beat count, reset it to 1 (first beat of cycle)
 			x->current_beat = 1;
+		}
+		if(x->current_beat == 1) {
+			// current beat is the first beat of cycle, send set_up_new_cycle and new_cycle
 			set_up_new_cycle(x);
 			new_cycle(x);
 		}
@@ -197,10 +200,8 @@ void ml_click_start_counting_beats(t_ml_click *x, t_symbol *s, int argc, t_atom 
 }
 
 void ml_click_stop_counting_beats(t_ml_click *x) {
-	// reset beat number to 1 send set_up_new_cycle and new_cycle and turn of counting beats 
+	// reset beat number to 1 (first beat of cycle) and turn off counting beats 
 	x->current_beat = 1;
-	set_up_new_cycle(x);
-	new_cycle(x);
 	x->is_counting_beats = 0;
 }
 
