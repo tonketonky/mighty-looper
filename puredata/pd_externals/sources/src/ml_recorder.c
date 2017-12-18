@@ -109,8 +109,20 @@ void start_recording(t_ml_recorder *x) {
 		}
 	}
 
-	outlet_symbol(x->cmd_dest_out, gensym("tabwrite_rec"));
+	// get destination symbol for corresponding tabwrite object according to channel 
+	char *dest_str = malloc(20);
 
+	char *channel_str = malloc(5);
+	symb_2_string(x->flagged_channel, channel_str);
+
+	sprintf(dest_str, "tabwrite_rec_%s", channel_str);
+
+	outlet_symbol(x->cmd_dest_out, gensym(dest_str));
+
+	free(dest_str);
+	free(channel_str);
+
+	// set table name to tabwrite object
 	SETSYMBOL(
 		x->cmd_args,
 		get_table_name_symb(
@@ -123,6 +135,7 @@ void start_recording(t_ml_recorder *x) {
 	);
 	
 	outlet_anything(x->cmd_out, gensym("set"), 1, x->cmd_args);
+	// send bang to tabwrite object to start recording
 	outlet_bang(x->cmd_out);
 
 	x->is_flagged = 0;
