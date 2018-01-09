@@ -91,7 +91,7 @@ There are 2 lever switches, 1 for each channel to switch bypass ON/OFF.
 ## How it's (will be) put together
 
 The looper logic is implemented in Pure Data patch running on Raspberry Pi 3 while it is being controlled by the sketch
-running on Adruino with controlling components connected (footswitches, pots, toggle switches, etc.). RPi and
+running on Adruino with controlling components connected (footswitches, pots, lever switches, etc.). RPi and
 Arduino talk to each other via serial port.
 
 As an audio interface a sound card compatible with RPi which has stereo input and stereo output is required.
