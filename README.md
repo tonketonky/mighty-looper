@@ -62,18 +62,17 @@ track of corresponding channel).
 	- _double press_ - N/A
 	- _long press_ - flags recording to both phrases simultaneously of corresponding track if it is not being currently
 	recorded, otherwise cancels recording
-
 - playback switches have following press types mapped to actions:
 	- _single press_ - flags switching looping ON/OFF of corresponding track
 	- _double press_ - mutes/unmutes corresponding track
 	- _long press_ - UNDO/REDO last recorded layer of corresponding track
 
 There is 1 footswitch box with 3 switches:
-	- 1 for each channel with following press types mapped to actions:
-		- _single press_ - flags/unflags switching looping ON/OFF of corresponding channel
-		- _double press_ - mutes/unmutes corresponding channel
-		- _long press_ - N/A
-	- 1 for switching between phases by single pressing
+- 1 for each channel with following press types mapped to actions:
+	- _single press_ - flags/unflags switching looping ON/OFF of corresponding channel
+	- _double press_ - mutes/unmutes corresponding channel
+	- _long press_ - N/A
+- 1 for switching between phases by single pressing
 
 ### Pots
 
