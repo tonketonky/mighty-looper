@@ -103,4 +103,8 @@ that appears to work glitch-free with the latency as low as 5ms.
 
 
    
+## Credits
 
+In the initial stage of this project I drew a lot of inspiration from
+[GuitarExtended](https://guitarextended.wordpress.com/) blog which provides very comprehensive guide on how to make
+guitar effects in Pure Data running on Raspberry Pi. Very well done! Thanks!
