@@ -1,7 +1,8 @@
 # Mighty Looper
 
 Mighty Looper project is an attempt to build an open source, portable, low-cost, 2-channel, multi-track audio looping machine that allows to operate
-within 2 individual loop phrases (verse/chorus). The looper is supposed to be used in a single person performance with
+within 2 individual loop phrases (verse/chorus). It is implemented in Pure Data extended by C libraries, runs on
+Raspberry Pi and is controlled by Arduino based controls. The looper is supposed to be used in a single person performance with
 multiple instruments. 
 
 The project is currently still under development.
