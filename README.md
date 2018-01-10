@@ -1,6 +1,6 @@
 # Mighty Looper
 
-Mighty Looper project is an attempt to build low-cost 2-channel multi-track audio looping machine that allows to operate
+Mighty Looper project is an attempt to build an open source, portable, low-cost, 2-channel, multi-track audio looping machine that allows to operate
 within 2 individual loop phrases (verse/chorus). The looper is supposed to be used in a single person performance with
 multiple instruments. 
 
