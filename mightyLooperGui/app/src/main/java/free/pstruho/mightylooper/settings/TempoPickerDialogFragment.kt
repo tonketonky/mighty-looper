@@ -13,33 +13,33 @@ private const val WRAP_SELECTOR_WHEEL = true
 
 class TempoPickerDialogFragment : PreferenceDialogFragmentCompat() {
 
-    private lateinit var picker: NumberPicker
+    private lateinit var mNumberPicker: NumberPicker
 
     override fun onCreateDialogView(context: Context): View {
         val layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        picker = NumberPicker(context)
-        picker.layoutParams = layoutParams
+        mNumberPicker = NumberPicker(context)
+        mNumberPicker.layoutParams = layoutParams
 
         val dialogView = FrameLayout(context)
-        dialogView.addView(picker)
+        dialogView.addView(mNumberPicker)
         return dialogView
     }
 
     override fun onBindDialogView(view: View?) {
         super.onBindDialogView(view)
-        picker.minValue = MIN_VALUE
-        picker.maxValue = MAX_VALUE
-        picker.wrapSelectorWheel = WRAP_SELECTOR_WHEEL
-        picker.value = (preference as TempoPickerPreference).tempo
+        mNumberPicker.minValue = MIN_VALUE
+        mNumberPicker.maxValue = MAX_VALUE
+        mNumberPicker.wrapSelectorWheel = WRAP_SELECTOR_WHEEL
+        mNumberPicker.value = (preference as TempoPickerPreference).mTempo
     }
 
     override fun onDialogClosed(positiveResult: Boolean) {
         if (positiveResult) {
-            picker.clearFocus()
-            val newValue = picker.value
+            mNumberPicker.clearFocus()
+            val newValue = mNumberPicker.value
             (preference as TempoPickerPreference).update(newValue)
         }
     }
