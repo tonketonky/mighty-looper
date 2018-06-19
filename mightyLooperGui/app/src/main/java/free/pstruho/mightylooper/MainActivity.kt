@@ -12,8 +12,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import free.pstruho.mightylooper.settings.TempoPickerDialogFragment
-import free.pstruho.mightylooper.settings.TempoPickerPreference
+import free.pstruho.mightylooper.settings.TempoPreferenceDialogFragment
+import free.pstruho.mightylooper.settings.TempoPreference
 
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -94,8 +94,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onDisplayPreferenceDialog(preference: Preference) {
-            if (preference is TempoPickerPreference) {
-                val dialogFragment = TempoPickerDialogFragment()
+            if (preference is TempoPreference) {
+                val dialogFragment = TempoPreferenceDialogFragment()
                 val bundle = Bundle(1)
                 bundle.putString("key", preference.getKey())
                 dialogFragment.arguments = bundle

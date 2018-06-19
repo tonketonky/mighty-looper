@@ -7,7 +7,7 @@ import android.util.AttributeSet
 
 private const val DEFAULT_TEMPO = 90
 
-class TempoPickerPreference(context: Context, attrs: AttributeSet) : DialogPreference(context, attrs) {
+class TempoPreference(context: Context, attrs: AttributeSet) : DialogPreference(context, attrs) {
 
     var mTempo = 0
 

@@ -6,8 +6,8 @@
         android:key="click_preference"
         android:title="Click" />
 
-    <free.pstruho.mightylooper.settings.TempoPickerPreference
-        android:key="key_number"
+    <free.pstruho.mightylooper.settings.TempoPreference
+        android:key="tempo_preference"
         android:title="Tempo"
         android:defaultValue="90" />
 </PreferenceScreen>

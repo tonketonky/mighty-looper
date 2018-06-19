@@ -11,7 +11,7 @@ private const val MAX_VALUE = 200
 private const val MIN_VALUE = 1
 private const val WRAP_SELECTOR_WHEEL = true
 
-class TempoPickerDialogFragment : PreferenceDialogFragmentCompat() {
+class TempoPreferenceDialogFragment : PreferenceDialogFragmentCompat() {
 
     private lateinit var mNumberPicker: NumberPicker
 
@@ -33,14 +33,14 @@ class TempoPickerDialogFragment : PreferenceDialogFragmentCompat() {
         mNumberPicker.minValue = MIN_VALUE
         mNumberPicker.maxValue = MAX_VALUE
         mNumberPicker.wrapSelectorWheel = WRAP_SELECTOR_WHEEL
-        mNumberPicker.value = (preference as TempoPickerPreference).mTempo
+        mNumberPicker.value = (preference as TempoPreference).mTempo
     }
 
     override fun onDialogClosed(positiveResult: Boolean) {
         if (positiveResult) {
             mNumberPicker.clearFocus()
             val newValue = mNumberPicker.value
-            (preference as TempoPickerPreference).update(newValue)
+            (preference as TempoPreference).update(newValue)
         }
     }
 }
