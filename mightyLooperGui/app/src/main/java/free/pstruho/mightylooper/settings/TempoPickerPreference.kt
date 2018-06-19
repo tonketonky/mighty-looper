@@ -14,12 +14,13 @@ class TempoPickerPreference(context: Context, attrs: AttributeSet) : DialogPrefe
         return a.getInt(index, default)
     }
 
-    override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any) {
+    override fun onSetInitialValue(restorePersistedValue: Boolean, defaultValue: Any?) {
         update( if (restorePersistedValue) getPersistedInt(default) else defaultValue as Int )
     }
 
     fun update(tempo: Int) {
+        persistInt(tempo)
         this.tempo = tempo
-        this.summary = tempo.toString()
+        this.summary = "$tempo bpm"
     }
 }
