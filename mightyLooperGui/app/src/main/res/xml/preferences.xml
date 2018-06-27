@@ -10,4 +10,9 @@
         android:key="tempo_preference"
         android:title="Tempo"
         android:defaultValue="90" />
+
+    <free.pstruho.mightylooper.settings.LooperInUsePreference
+        android:key="looper_in_use_preference"
+        android:title="Looper in use"
+        android:defaultValue="Disconnected" />
 </PreferenceScreen>

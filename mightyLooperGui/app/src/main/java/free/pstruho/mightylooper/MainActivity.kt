@@ -6,16 +6,22 @@ import android.support.v7.preference.Preference
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentPagerAdapter
-import android.os.Bundle
+import android.support.v7.preference.PreferenceDialogFragmentCompat
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import free.pstruho.mightylooper.settings.TempoPreferenceDialogFragment
+import free.pstruho.mightylooper.settings.LooperInUsePreference
 import free.pstruho.mightylooper.settings.TempoPreference
 
 import kotlinx.android.synthetic.main.activity_main.*
+import android.content.Intent
+import free.pstruho.mightylooper.service.LooperService
+import android.content.ComponentName
+import android.content.Context
+import android.content.ServiceConnection
+import android.os.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,12 +35,33 @@ class MainActivity : AppCompatActivity() {
      */
     private var mSectionsPagerAdapter: SectionsPagerAdapter? = null
 
+    lateinit var mLooperService: LooperService
+    var mBound = false
+
+
+    private val mConnection = object : ServiceConnection {
+
+        override fun onServiceConnected(className: ComponentName,
+                                        service: IBinder) {
+            mLooperService = (service as LooperService.LocalBinder).getService()
+            mBound = true
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            mBound = false
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         /*window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN)*/
+
+
+        val intent = Intent(this, LooperService::class.java)
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -45,6 +72,10 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    override fun onDestroy() {
+        unbindService(mConnection)
+        super.onDestroy()
+    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -64,7 +95,6 @@ class MainActivity : AppCompatActivity() {
 
         return super.onOptionsItemSelected(item)
     }
-
 
     /**
      * A [FragmentPagerAdapter] that returns a fragment corresponding to
@@ -89,21 +119,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     class SettingsFragment : PreferenceFragmentCompat() {
+
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.preferences, rootKey)
         }
 
         override fun onDisplayPreferenceDialog(preference: Preference) {
-            if (preference is TempoPreference) {
-                val dialogFragment = TempoPreferenceDialogFragment()
-                val bundle = Bundle(1)
-                bundle.putString("key", preference.getKey())
-                dialogFragment.arguments = bundle
-                dialogFragment.setTargetFragment(this, 0)
-                dialogFragment.show(this.fragmentManager, "android.support.v7.preference.PreferenceFragment.DIALOG")
-            } else {
-                super.onDisplayPreferenceDialog(preference)
+            when (preference) {
+                is TempoPreference, is LooperInUsePreference -> showDialogForPreference(preference)
+                else -> super.onDisplayPreferenceDialog(preference)
             }
+        }
+
+        private fun showDialogForPreference(preference: Preference) {
+            val dialogFragment: PreferenceDialogFragmentCompat? = when (preference) {
+                is TempoPreference -> TempoPreference.TempoPreferenceDialogFragment()
+                is LooperInUsePreference -> LooperInUsePreference.SelectLooperDialogFragment()
+                else -> null
+            }
+
+            val bundle = Bundle(1)
+            bundle.putString("key", preference.key)
+            dialogFragment?.arguments = bundle
+            dialogFragment?.setTargetFragment(this, 0)
+            dialogFragment?.show(this.fragmentManager, "android.support.v7.preference.PreferenceFragment.DIALOG")
         }
     }
 
