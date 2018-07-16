@@ -6,26 +6,26 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-MlSimpleButton 	KEYWORD1
-MlMultiButton 	KEYWORD1
-MlChannelButton KEYWORD1
-MlTrackButton 	KEYWORD1
+MlSimpleButton	KEYWORD1
+MlMultiButton	KEYWORD1
+MlChannelButton	KEYWORD1
+MlTrackButton	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-update			KEYWORD2
-getSignal		KEYWORD2
+update	KEYWORD2
+getSignal	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
 #######################################
 
-SINGLE_PRESS 	LITERAL1
-DOUBLE_PRESS 	LITERAL1
-LONG_PRESS 		LITERAL1
+SINGLE_PRESS	LITERAL1
+DOUBLE_PRESS	LITERAL1
+LONG_PRESS	LITERAL1
 
-CURRENT 			LITERAL1
-LAST 					LITERAL1
-NEW_PRESS			LITERAL1
+CURRENT	LITERAL1
+LAST	LITERAL1
+NEW_PRESS	LITERAL1
