@@ -1,6 +1,7 @@
 package free.pstruho.mightylooper.settings
 
 import android.app.Activity
+import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.*
@@ -12,16 +13,15 @@ import android.support.v7.preference.PreferenceDialogFragmentCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Button
-import android.widget.LinearLayout
 import android.widget.TextView
 import free.pstruho.mightylooper.MainActivity
 import free.pstruho.mightylooper.R
 import free.pstruho.mightylooper.service.UPDATED_LOOPER_LIST
 import java.util.*
+import android.os.Bundle
+import android.view.*
+import kotlinx.android.synthetic.main.dialog_title.view.*
 
 private const val DEFAULT_VALUE = "Disconnected"
 private const val REQUEST_ENABLE_BT = 1
@@ -62,28 +62,38 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
             }
         }
 
-        override fun onPrepareDialogBuilder(builder: AlertDialog.Builder) {
-            super.onPrepareDialogBuilder(builder)
+        override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+            // get alert builder and inflater
+            val builder = AlertDialog.Builder(requireContext())
+            mInflater = requireActivity().layoutInflater
+
+            // inflate and set title
+            val title = mInflater.inflate(R.layout.dialog_title, null)
+            title.titleText.text = "Looper in use"
+            builder.setCustomTitle(title)
+
+            // inflate and set view
+            mSelectLooperDialogView = mInflater.inflate(R.layout.dialog_select_looper, null)
+            builder.setView(mSelectLooperDialogView)
 
             // register broadcast receiver
             val filter = IntentFilter(UPDATED_LOOPER_LIST)
-            LocalBroadcastManager.getInstance(context!!).registerReceiver(mReceiver, filter)
-            // build dialog
-            mInflater = context!!.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            mSelectLooperDialogView = mInflater.inflate(R.layout.dialog_select_looper, LinearLayout(context))
+            LocalBroadcastManager.getInstance(requireContext()).registerReceiver(mReceiver, filter)
 
+            // set up looper list view
             val looperListView= mSelectLooperDialogView.findViewById<RecyclerView>(R.id.looperListView)
-            looperListView.setHasFixedSize(true)
             looperListView.layoutManager = LinearLayoutManager(context)
             mLooperListViewAdapter = LooperListViewAdapter(Collections.emptyList())
             looperListView.adapter = mLooperListViewAdapter
 
+            // set up find loopers button
             val findLoopersButton = mSelectLooperDialogView.findViewById<Button>(R.id.findLoopersButton)
             findLoopersButton.setOnClickListener {
                 triggerFindingLoopers()
             }
 
-            builder.setView(mSelectLooperDialogView)
+            // create dialog
+            return builder.create()
         }
 
         private fun triggerFindingLoopers() {
@@ -119,7 +129,7 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
         private fun showAlert(message: String) {
             val alertDialog = AlertDialog.Builder(context!!).create()
             alertDialog.setMessage(message)
-            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", { _, _ -> dialog.dismiss() })
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK") { _, _ -> dialog.dismiss() }
             alertDialog.show()
         }
 
@@ -140,19 +150,32 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
             RecyclerView.Adapter<LooperListViewAdapter.ViewHolder>() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.looperNameView.text = looperList[position].name
+            // this implements showing at least 3 items in view even when looper list contains less items
+            holder.itemTextView.text =
+                when (looperList.size) {
+                    // looper list is empty, show message on first item and leave other 2 blank
+                    0 -> if (position == 0) "--no loopers found--" else ""
+                    // looper list is not empty but has less than 3 items, show looper name for all items from looper list and leave others blank
+                    1,2,3 -> if (position < looperList.size) looperList[position].name else ""
+                    // looper list has 3 or more items, show names for all of them
+                    else -> looperList[position].name
+                }
         }
 
         override fun getItemCount(): Int {
-            return looperList.size
+            // the lowest possible number returned is 3 in order to show at least 3 items in list even when looper list contains less
+            return if (looperList.size > 3) looperList.size else 3
         }
 
-        class ViewHolder(itemView: TextView) : RecyclerView.ViewHolder(itemView) {
-            var looperNameView: TextView = itemView
+        class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            var looperNameView: View = itemView
+            var itemTextView = itemView.findViewById(R.id.item_text_view) as TextView
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = TextView(parent.context)
+            val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.dialog_select_looper_list_item, parent, false)
+
             return ViewHolder(view)
         }
 
