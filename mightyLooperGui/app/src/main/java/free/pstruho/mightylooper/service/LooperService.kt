@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
 import android.os.Binder
+import android.os.Handler
 import java.util.*
 import android.support.v4.content.LocalBroadcastManager
 
@@ -28,7 +29,11 @@ class LooperService : Service() {
             val action = intent.action
             if (BluetoothDevice.ACTION_FOUND == action) {
                 val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
-                mDeviceList.add(device)
+
+                // if found device is not already in the list add it
+                if(mDeviceList.none { item -> device.address == item.address }) {
+                    mDeviceList.add(device)
+                }
 
                 // notify about updating looper list
                 val updateLooperListIntent = Intent()
@@ -54,7 +59,14 @@ class LooperService : Service() {
     }
 
     fun findLoopers() {
-        mBluetoothAdapter.startDiscovery()
+        if(!mBluetoothAdapter.isDiscovering) {
+            mBluetoothAdapter.startDiscovery()
+
+            // stop discovering after 10 seconds
+            Handler().postDelayed({
+                mBluetoothAdapter.cancelDiscovery()
+            }, 10000)
+        }
     }
 
     fun isBtSupported(): Boolean {
