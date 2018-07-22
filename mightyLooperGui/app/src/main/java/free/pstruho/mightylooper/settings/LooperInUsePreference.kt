@@ -15,14 +15,18 @@ import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
 import android.widget.Button
 import android.widget.TextView
-import free.pstruho.mightylooper.MainActivity
 import free.pstruho.mightylooper.R
 import free.pstruho.mightylooper.service.UPDATED_LOOPER_LIST
 import java.util.*
 import android.os.Bundle
+import android.os.IBinder
+import android.os.Parcel
+import android.os.Parcelable
 import android.view.*
 import kotlinx.android.synthetic.main.dialog_title.view.*
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
+import free.pstruho.mightylooper.service.LooperService
+import kotlin.collections.ArrayList
 
 private const val DEFAULT_VALUE = "Disconnected"
 private const val REQUEST_ENABLE_BT = 1
@@ -50,19 +54,39 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
         private lateinit var mInflater: LayoutInflater
         private lateinit var mSelectLooperDialogView: View
         private lateinit var mLooperListViewAdapter: LooperListViewAdapter
+        private lateinit var mLooperService: LooperService
+        private var mBound = false
 
         private val mReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 val action = intent.action
                 when (action) {
                     UPDATED_LOOPER_LIST -> {
-                        mLooperListViewAdapter.updateLooperList((activity as MainActivity).mLooperService.getDeviceList())
+                        mLooperListViewAdapter.updateLooperList(mLooperService.getDeviceList())
                     }
                 }
             }
         }
 
+        private val mConnection = object : ServiceConnection {
+
+            override fun onServiceConnected(className: ComponentName,
+                                            service: IBinder) {
+                mLooperService = (service as LooperService.LocalBinder).getService()
+                mLooperListViewAdapter.updateLooperList(mLooperService.getDeviceList())
+                mBound = true
+            }
+
+            override fun onServiceDisconnected(arg0: ComponentName) {
+                mBound = false
+            }
+        }
+
         override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+            // bind looper service
+            val intent = Intent(requireContext(), LooperService::class.java)
+            requireActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
+
             // get alert builder and inflater
             val builder = AlertDialog.Builder(requireContext())
             mInflater = requireActivity().layoutInflater
@@ -94,12 +118,10 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
 
                     if (looperListView.measuredHeight > 0) {
                         /* once looperListView gets height set after wrapping content remove listener,
-                         * grab the height, set it as fixed view height and update looperList with actual
-                         * list of loopers
+                         * grab the height, set it as fixed view height
                          */
                         looperListView.viewTreeObserver.removeOnGlobalLayoutListener(this)
                         looperListView.layoutParams.height = looperListView.measuredHeight
-                        mLooperListViewAdapter.updateLooperList((activity as MainActivity).mLooperService.getDeviceList())
                     }
                 }
             })
@@ -115,20 +137,17 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
         }
 
         private fun triggerFindingLoopers() {
-            val looperService = (activity as MainActivity).mLooperService
-
-            if (!looperService.isBtSupported()) {
+            if (!mLooperService.isBtSupported()) {
                 // bluetooth not supported by device
                 showAlert("Sorry, your device doesn't support Bluetooth")
-            } else if (!looperService.isBtEnabled()) {
+            } else if (!mLooperService.isBtEnabled()) {
                 // bluetooth supported but not enabled, request enabling it
                 val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
             } else {
                 // bluetooth is supported and enabled, find loopers
-                looperService.findLoopers()
+                mLooperService.findLoopers()
             }
-
         }
 
         override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -159,12 +178,18 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
         }
 
         override fun onDestroy() {
-            LocalBroadcastManager.getInstance(context!!).unregisterReceiver(mReceiver)
+            LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(mReceiver)
+            requireActivity().unbindService(mConnection)
             super.onDestroy()
+        }
+
+        override fun onSaveInstanceState(outState: Bundle) {
+            outState.putParcelableArrayList("looperList", ArrayList(mLooperListViewAdapter.looperList) )
+            super.onSaveInstanceState(outState)
         }
     }
 
-    class LooperListViewAdapter(private var looperList: List<BluetoothDevice>) :
+    class LooperListViewAdapter(var looperList: List<LooperListItem>) :
             RecyclerView.Adapter<LooperListViewAdapter.ViewHolder>() {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -197,10 +222,41 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
         }
 
         fun updateLooperList(updatedLooperList: List<BluetoothDevice>) {
-            looperList = updatedLooperList
+            val updatedLooperListItems = updatedLooperList.map { updatedListItem ->
+                looperList.find { currentListItem ->
+                    currentListItem.address == updatedListItem.address
+                } ?: LooperListItem(updatedListItem.name,updatedListItem.address, false)
+            }
+            looperList = updatedLooperListItems
             notifyDataSetChanged()
         }
+    }
 
+    data class LooperListItem(val name:String, val address: String, val selected: Boolean): Parcelable {
+        constructor(parcel: Parcel) : this(
+                parcel.readString(),
+                parcel.readString(),
+                parcel.readByte() != 0.toByte())
+
+        override fun writeToParcel(parcel: Parcel, flags: Int) {
+            parcel.writeString(name)
+            parcel.writeString(address)
+            parcel.writeByte(if (selected) 1 else 0)
+        }
+
+        override fun describeContents(): Int {
+            return 0
+        }
+
+        companion object CREATOR : Parcelable.Creator<LooperListItem> {
+            override fun createFromParcel(parcel: Parcel): LooperListItem {
+                return LooperListItem(parcel)
+            }
+
+            override fun newArray(size: Int): Array<LooperListItem?> {
+                return arrayOfNulls(size)
+            }
+        }
     }
 }
 

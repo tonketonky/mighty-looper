@@ -18,10 +18,9 @@ import free.pstruho.mightylooper.settings.TempoPreference
 import kotlinx.android.synthetic.main.activity_main.*
 import android.content.Intent
 import free.pstruho.mightylooper.service.LooperService
-import android.content.ComponentName
-import android.content.Context
-import android.content.ServiceConnection
 import android.os.*
+import android.support.v7.app.AlertDialog
+import kotlinx.android.synthetic.main.dialog_title.view.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,23 +34,6 @@ class MainActivity : AppCompatActivity() {
      */
     private var mSectionsPagerAdapter: SectionsPagerAdapter? = null
 
-    lateinit var mLooperService: LooperService
-    var mBound = false
-
-
-    private val mConnection = object : ServiceConnection {
-
-        override fun onServiceConnected(className: ComponentName,
-                                        service: IBinder) {
-            mLooperService = (service as LooperService.LocalBinder).getService()
-            mBound = true
-        }
-
-        override fun onServiceDisconnected(arg0: ComponentName) {
-            mBound = false
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -59,9 +41,8 @@ class MainActivity : AppCompatActivity() {
         /*window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN)*/
 
-
-        val intent = Intent(this, LooperService::class.java)
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
+        // start looper service
+        startService(Intent(this, LooperService::class.java))
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
@@ -72,9 +53,22 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    override fun onDestroy() {
-        unbindService(mConnection)
-        super.onDestroy()
+    override fun onBackPressed() {
+        val builder = AlertDialog.Builder(this)
+
+        val title = layoutInflater.inflate(R.layout.dialog_title, null)
+        title.titleText.text = "What to do?"
+        builder.setCustomTitle(title)
+
+        // when Quit button pressed stop looper service and finish
+        builder.setPositiveButton("Quit") { _, _ ->
+            stopService(Intent(this, LooperService::class.java))
+            finish()
+        }
+        // when Suspend button pressed proceed with default back button behaviour
+        builder.setNegativeButton("Suspend") { _, _ -> super.onBackPressed()}
+
+        builder.create().show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

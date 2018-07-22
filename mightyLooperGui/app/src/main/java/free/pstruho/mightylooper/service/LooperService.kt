@@ -50,6 +50,10 @@ class LooperService : Service() {
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(this)
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return START_STICKY
+    }
+
     override fun onBind(intent: Intent?): IBinder? {
         return mBinder
     }
