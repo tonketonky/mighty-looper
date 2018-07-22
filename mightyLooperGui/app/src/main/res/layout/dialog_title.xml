@@ -18,6 +18,7 @@
         android:layout_margin="8dp"
         android:layout_weight="1"
         android:fadingEdge="horizontal"
-        android:visibility="visible" />
+        android:visibility="visible"
+        android:background="#EEE"/>
 
 </LinearLayout>
