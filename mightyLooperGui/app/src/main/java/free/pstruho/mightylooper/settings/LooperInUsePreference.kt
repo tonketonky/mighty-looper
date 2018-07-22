@@ -22,6 +22,7 @@ import java.util.*
 import android.os.Bundle
 import android.view.*
 import kotlinx.android.synthetic.main.dialog_title.view.*
+import android.view.ViewTreeObserver.OnGlobalLayoutListener
 
 private const val DEFAULT_VALUE = "Disconnected"
 private const val REQUEST_ENABLE_BT = 1
@@ -56,7 +57,6 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
                 when (action) {
                     UPDATED_LOOPER_LIST -> {
                         mLooperListViewAdapter.updateLooperList((activity as MainActivity).mLooperService.getDeviceList())
-                        mLooperListViewAdapter.notifyDataSetChanged()
                     }
                 }
             }
@@ -85,6 +85,24 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
             looperListView.layoutManager = LinearLayoutManager(context)
             mLooperListViewAdapter = LooperListViewAdapter(Collections.emptyList())
             looperListView.adapter = mLooperListViewAdapter
+            /* looperListView gets initially filled with 3 empty items (before being updated with actual looper list)
+             * globalLayoutListener handles the moment when looperListView gets wrapped around these 3 items
+             * and sets actual height of looperListView as its fixed height
+             */
+            looperListView.viewTreeObserver.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+
+                    if (looperListView.measuredHeight > 0) {
+                        /* once looperListView gets height set after wrapping content remove listener,
+                         * grab the height, set it as fixed view height and update looperList with actual
+                         * list of loopers
+                         */
+                        looperListView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                        looperListView.layoutParams.height = looperListView.measuredHeight
+                        mLooperListViewAdapter.updateLooperList((activity as MainActivity).mLooperService.getDeviceList())
+                    }
+                }
+            })
 
             // set up find loopers button
             val findLoopersButton = mSelectLooperDialogView.findViewById<Button>(R.id.findLoopersButton)
@@ -175,12 +193,12 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context)
                     .inflate(R.layout.dialog_select_looper_list_item, parent, false)
-
             return ViewHolder(view)
         }
 
         fun updateLooperList(updatedLooperList: List<BluetoothDevice>) {
             looperList = updatedLooperList
+            notifyDataSetChanged()
         }
 
     }
