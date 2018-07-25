@@ -16,7 +16,6 @@ import android.util.AttributeSet
 import android.widget.Button
 import android.widget.TextView
 import free.pstruho.mightylooper.R
-import free.pstruho.mightylooper.service.UPDATED_LOOPER_LIST
 import java.util.*
 import android.os.Bundle
 import android.os.IBinder
@@ -25,8 +24,10 @@ import android.os.Parcelable
 import android.view.*
 import kotlinx.android.synthetic.main.dialog_title.view.*
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
+import free.pstruho.mightylooper.constants.ACTION_UPDATED_LOOPER_LIST
 import free.pstruho.mightylooper.service.LooperService
 import kotlin.collections.ArrayList
+import kotlin.properties.Delegates
 
 private const val DEFAULT_VALUE = "Disconnected"
 private const val REQUEST_ENABLE_BT = 1
@@ -61,7 +62,7 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
             override fun onReceive(context: Context, intent: Intent) {
                 val action = intent.action
                 when (action) {
-                    UPDATED_LOOPER_LIST -> {
+                    ACTION_UPDATED_LOOPER_LIST -> {
                         mLooperListViewAdapter.updateLooperList(mLooperService.getDeviceList())
                     }
                 }
@@ -101,11 +102,11 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
             builder.setView(mSelectLooperDialogView)
 
             // register broadcast receiver
-            val filter = IntentFilter(UPDATED_LOOPER_LIST)
+            val filter = IntentFilter(ACTION_UPDATED_LOOPER_LIST)
             LocalBroadcastManager.getInstance(requireContext()).registerReceiver(mReceiver, filter)
 
             // set up looper list view
-            val looperListView= mSelectLooperDialogView.findViewById<RecyclerView>(R.id.looperListView)
+            val looperListView = mSelectLooperDialogView.findViewById<RecyclerView>(R.id.looperListView)
             looperListView.layoutManager = LinearLayoutManager(context)
             mLooperListViewAdapter = LooperListViewAdapter(Collections.emptyList())
             looperListView.adapter = mLooperListViewAdapter
@@ -156,7 +157,7 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
                     resultCode,
                     data
             )
-            if(requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK) {
+            if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK) {
                 triggerFindingLoopers()
             } else {
                 showAlert("Not much fun without Bluetooth though...")
@@ -184,51 +185,62 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
         }
 
         override fun onSaveInstanceState(outState: Bundle) {
-            outState.putParcelableArrayList("looperList", ArrayList(mLooperListViewAdapter.looperList) )
+            outState.putParcelableArrayList("looperList", ArrayList(mLooperListViewAdapter.looperList))
             super.onSaveInstanceState(outState)
         }
-    }
 
-    class LooperListViewAdapter(var looperList: List<LooperListItem>) :
-            RecyclerView.Adapter<LooperListViewAdapter.ViewHolder>() {
+        inner class LooperListViewAdapter(var looperList: List<LooperListItem>) :
+                RecyclerView.Adapter<LooperListViewAdapter.ViewHolder>() {
 
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            // this implements showing at least 3 items in view even when looper list contains less items
-            holder.itemTextView.text =
-                when (looperList.size) {
-                    // looper list is empty, show message on first item and leave other 2 blank
-                    0 -> if (position == 0) "--no loopers found--" else ""
-                    // looper list is not empty but has less than 3 items, show looper name for all items from looper list and leave others blank
-                    1,2,3 -> if (position < looperList.size) looperList[position].name else ""
-                    // looper list has 3 or more items, show names for all of them
-                    else -> looperList[position].name
-                }
-        }
-
-        override fun getItemCount(): Int {
-            // the lowest possible number returned is 3 in order to show at least 3 items in list even when looper list contains less
-            return if (looperList.size > 3) looperList.size else 3
-        }
-
-        class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            var looperNameView: View = itemView
-            var itemTextView = itemView.findViewById(R.id.item_text_view) as TextView
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.dialog_select_looper_list_item, parent, false)
-            return ViewHolder(view)
-        }
-
-        fun updateLooperList(updatedLooperList: List<BluetoothDevice>) {
-            val updatedLooperListItems = updatedLooperList.map { updatedListItem ->
-                looperList.find { currentListItem ->
-                    currentListItem.address == updatedListItem.address
-                } ?: LooperListItem(updatedListItem.name,updatedListItem.address, false)
+            override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+                // this implements showing at least 3 items in view even when looper list contains less items
+                holder.itemTextView.text =
+                        when (looperList.size) {
+                        // looper list is empty, show message on first item and leave other 2 blank
+                            0 -> if (position == 0) "--no loopers found--" else ""
+                        // looper list is not empty but has less than 3 items, show looper name for all items from looper list and leave others blank
+                            1, 2, 3 -> if (position < looperList.size) looperList[position].name else ""
+                        // looper list has 3 or more items, show names for all of them
+                            else -> looperList[position].name
+                        }
             }
-            looperList = updatedLooperListItems
-            notifyDataSetChanged()
+
+            override fun getItemCount(): Int {
+                // the lowest possible number returned is 3 in order to show at least 3 items in list even when looper list contains less
+                return if (looperList.size > 3) looperList.size else 3
+            }
+
+            inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+                var looperNameView: View by Delegates.notNull()
+                var itemTextView: TextView by Delegates.notNull()
+
+                init {
+                    looperNameView = itemView
+                    itemTextView = itemView.findViewById(R.id.item_text_view) as TextView
+                    looperNameView.setOnClickListener {
+                        if (adapterPosition < looperList.size) {
+                            val listItem = looperList[adapterPosition]
+                            mLooperService.connectLooper(listItem.address)
+                        }
+                    }
+                }
+            }
+
+            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+                val view = LayoutInflater.from(parent.context)
+                        .inflate(R.layout.dialog_select_looper_list_item, parent, false)
+                return ViewHolder(view)
+            }
+
+            fun updateLooperList(updatedLooperList: List<BluetoothDevice>) {
+                val updatedLooperListItems = updatedLooperList.map { updatedListItem ->
+                    looperList.find { currentListItem ->
+                        currentListItem.address == updatedListItem.address
+                    } ?: LooperListItem(updatedListItem.name, updatedListItem.address, false)
+                }
+                looperList = updatedLooperListItems
+                notifyDataSetChanged()
+            }
         }
     }
 
