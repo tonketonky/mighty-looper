@@ -13,7 +13,7 @@ import android.bluetooth.BluetoothSocket
 import android.os.*
 import android.util.Log
 import free.pstruho.mightylooper.constants.TAG_LOOPER_SERVICE
-import free.pstruho.mightylooper.constants.ACTION_UPDATED_LOOPER_LIST
+import free.pstruho.mightylooper.constants.ACTION_UPDATE_LOOPER_LIST
 import java.io.*
 
 class LooperService : Service() {
@@ -41,7 +41,8 @@ class LooperService : Service() {
 
                 // notify about updating looper list
                 val updateLooperListIntent = Intent()
-                updateLooperListIntent.action = ACTION_UPDATED_LOOPER_LIST
+                updateLooperListIntent.action = ACTION_UPDATE_LOOPER_LIST
+
                 mLocalBroadcastManager.sendBroadcast(updateLooperListIntent)
             }
         }
@@ -79,7 +80,7 @@ class LooperService : Service() {
         mConnectThread.start()
     }
 
-    private fun manageMyConnectedSocket(socket: BluetoothSocket) {
+    private fun manageConnectedSocket(socket: BluetoothSocket) {
         mConnectedThread = ConnectedThread(socket)
         mConnectedThread.start()
     }
@@ -157,7 +158,7 @@ class LooperService : Service() {
 
                 return
             }
-            manageMyConnectedSocket(mSocket)
+            manageConnectedSocket(mSocket)
         }
 
         fun cancel() {
@@ -193,10 +194,12 @@ class LooperService : Service() {
             mInStream = tmpIn
             mOutStream = tmpOut
         }
+
         val bufferedReader = BufferedReader(InputStreamReader(mInStream))
+
         override fun run() {
             val mBuffer = CharArray(128)
-            var numBytes: Int // bytes returned from read()
+            var numBytes: Int
 
             var data: String
             while (true) {
@@ -204,13 +207,13 @@ class LooperService : Service() {
                     if(bufferedReader.ready()) {
                         numBytes = bufferedReader.read(mBuffer)
                         data = String(mBuffer, 0, numBytes)
+
+                        // TODO: process data and do something
                     }
-                    // TODO: process data and do something
                 } catch (e: IOException) {
                     Log.d(TAG_LOOPER_SERVICE, "Input stream was disconnected", e)
                     break
                 }
-
             }
         }
 

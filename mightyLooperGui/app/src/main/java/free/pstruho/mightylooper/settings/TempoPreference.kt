@@ -33,7 +33,7 @@ class TempoPreference(context: Context, attrs: AttributeSet) : DialogPreference(
         this.summary = "$tempo bpm"
     }
 
-    class TempoPreferenceDialogFragment : PreferenceDialogFragmentCompat() {
+    class TempoDialog : PreferenceDialogFragmentCompat() {
 
         private lateinit var mNumberPicker: NumberPicker
 

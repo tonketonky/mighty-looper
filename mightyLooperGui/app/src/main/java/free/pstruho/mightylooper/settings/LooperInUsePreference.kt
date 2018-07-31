@@ -24,7 +24,7 @@ import android.os.Parcelable
 import android.view.*
 import kotlinx.android.synthetic.main.dialog_title.view.*
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
-import free.pstruho.mightylooper.constants.ACTION_UPDATED_LOOPER_LIST
+import free.pstruho.mightylooper.constants.ACTION_UPDATE_LOOPER_LIST
 import free.pstruho.mightylooper.service.LooperService
 import kotlin.collections.ArrayList
 import kotlin.properties.Delegates
@@ -50,7 +50,7 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
         this.summary = looperName
     }
 
-    class SelectLooperDialogFragment : PreferenceDialogFragmentCompat() {
+    class LooperInUseDialog : PreferenceDialogFragmentCompat() {
 
         private lateinit var mInflater: LayoutInflater
         private lateinit var mSelectLooperDialogView: View
@@ -62,7 +62,7 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
             override fun onReceive(context: Context, intent: Intent) {
                 val action = intent.action
                 when (action) {
-                    ACTION_UPDATED_LOOPER_LIST -> {
+                    ACTION_UPDATE_LOOPER_LIST -> {
                         mLooperListViewAdapter.updateLooperList(mLooperService.getDeviceList())
                     }
                 }
@@ -102,7 +102,7 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
             builder.setView(mSelectLooperDialogView)
 
             // register broadcast receiver
-            val filter = IntentFilter(ACTION_UPDATED_LOOPER_LIST)
+            val filter = IntentFilter(ACTION_UPDATE_LOOPER_LIST)
             LocalBroadcastManager.getInstance(requireContext()).registerReceiver(mReceiver, filter)
 
             // set up looper list view
@@ -242,31 +242,31 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
                 notifyDataSetChanged()
             }
         }
-    }
 
-    data class LooperListItem(val name:String, val address: String, val selected: Boolean): Parcelable {
-        constructor(parcel: Parcel) : this(
-                parcel.readString(),
-                parcel.readString(),
-                parcel.readByte() != 0.toByte())
+        data class LooperListItem(val name:String, val address: String, val selected: Boolean): Parcelable {
+            constructor(parcel: Parcel) : this(
+                    parcel.readString(),
+                    parcel.readString(),
+                    parcel.readByte() != 0.toByte())
 
-        override fun writeToParcel(parcel: Parcel, flags: Int) {
-            parcel.writeString(name)
-            parcel.writeString(address)
-            parcel.writeByte(if (selected) 1 else 0)
-        }
-
-        override fun describeContents(): Int {
-            return 0
-        }
-
-        companion object CREATOR : Parcelable.Creator<LooperListItem> {
-            override fun createFromParcel(parcel: Parcel): LooperListItem {
-                return LooperListItem(parcel)
+            override fun writeToParcel(parcel: Parcel, flags: Int) {
+                parcel.writeString(name)
+                parcel.writeString(address)
+                parcel.writeByte(if (selected) 1 else 0)
             }
 
-            override fun newArray(size: Int): Array<LooperListItem?> {
-                return arrayOfNulls(size)
+            override fun describeContents(): Int {
+                return 0
+            }
+
+            companion object CREATOR : Parcelable.Creator<LooperListItem> {
+                override fun createFromParcel(parcel: Parcel): LooperListItem {
+                    return LooperListItem(parcel)
+                }
+
+                override fun newArray(size: Int): Array<LooperListItem?> {
+                    return arrayOfNulls(size)
+                }
             }
         }
     }
