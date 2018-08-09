@@ -5,3 +5,6 @@ mightyLooperCore/pd_externals/sources/src/*.swp
 
 # library build directory
 mightyLooperCore/pd_externals/mighty_looper_lib
+
+# python cache
+mightyLooperEnv/launcher/__pycache__
