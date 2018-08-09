@@ -24,7 +24,7 @@ import android.os.Parcelable
 import android.view.*
 import kotlinx.android.synthetic.main.dialog_title.view.*
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
-import free.pstruho.mightylooper.constants.ACTION_UPDATE_LOOPER_LIST
+import free.pstruho.mightylooper.utils.ACT_UPDATE_LOOPER_LIST
 import free.pstruho.mightylooper.service.LooperService
 import kotlin.collections.ArrayList
 import kotlin.properties.Delegates
@@ -62,7 +62,7 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
             override fun onReceive(context: Context, intent: Intent) {
                 val action = intent.action
                 when (action) {
-                    ACTION_UPDATE_LOOPER_LIST -> {
+                    ACT_UPDATE_LOOPER_LIST -> {
                         mLooperListViewAdapter.updateLooperList(mLooperService.getDeviceList())
                     }
                 }
@@ -102,7 +102,7 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
             builder.setView(mSelectLooperDialogView)
 
             // register broadcast receiver
-            val filter = IntentFilter(ACTION_UPDATE_LOOPER_LIST)
+            val filter = IntentFilter(ACT_UPDATE_LOOPER_LIST)
             LocalBroadcastManager.getInstance(requireContext()).registerReceiver(mReceiver, filter)
 
             // set up looper list view

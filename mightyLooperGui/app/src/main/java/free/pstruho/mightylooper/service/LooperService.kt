@@ -12,8 +12,10 @@ import android.support.v4.content.LocalBroadcastManager
 import android.bluetooth.BluetoothSocket
 import android.os.*
 import android.util.Log
-import free.pstruho.mightylooper.constants.TAG_LOOPER_SERVICE
-import free.pstruho.mightylooper.constants.ACTION_UPDATE_LOOPER_LIST
+import free.pstruho.mightylooper.utils.TAG_LOOPER_SERVICE
+import free.pstruho.mightylooper.utils.ACT_UPDATE_LOOPER_LIST
+import free.pstruho.mightylooper.utils.SPP_UUID
+import free.pstruho.mightylooper.utils.getIntentFromMessage
 import java.io.*
 
 class LooperService : Service() {
@@ -41,7 +43,7 @@ class LooperService : Service() {
 
                 // notify about updating looper list
                 val updateLooperListIntent = Intent()
-                updateLooperListIntent.action = ACTION_UPDATE_LOOPER_LIST
+                updateLooperListIntent.action = ACT_UPDATE_LOOPER_LIST
 
                 mLocalBroadcastManager.sendBroadcast(updateLooperListIntent)
             }
@@ -129,8 +131,7 @@ class LooperService : Service() {
             var tmp: BluetoothSocket? = null
 
             try {
-                val m = mDevice.javaClass.getMethod("createRfcommSocket", Int::class.javaPrimitiveType!!)
-                tmp = m.invoke(mDevice, 22) as BluetoothSocket
+                tmp = mDevice.createRfcommSocketToServiceRecord(UUID.fromString(SPP_UUID))
                 Log.i(TAG_LOOPER_SERVICE, "Socket created")
             } catch (e: IOException) {
                 Log.e(TAG_LOOPER_SERVICE, "Socket's create() method failed", e)
@@ -200,16 +201,25 @@ class LooperService : Service() {
         override fun run() {
             val mBuffer = CharArray(128)
             var numBytes: Int
+            //var bytes = ByteArray(10)
+            var msg: String
 
-            var data: String
             while (true) {
                 try {
+                    // for some reason read() method on InputStream get stuck in blocked state even though data is received
+                    // this seems to be hardware specific issue, on some devices it might work
+                    //numBytes = mInStream?.read(bytes) ?: 0
+
+                    // Following is a workaround for issue with stuck read() method.
+                    // Since BufferedReader is non-blocking read() method needs to be invoked in a loop
                     if(bufferedReader.ready()) {
                         numBytes = bufferedReader.read(mBuffer)
-                        data = String(mBuffer, 0, numBytes)
-
-                        // TODO: process data and do something
+                        msg = String(mBuffer, 0, numBytes)
+                        Log.d(TAG_LOOPER_SERVICE, "Received message: $msg")
+                        getIntentFromMessage(msg)?.let { mLocalBroadcastManager.sendBroadcast(it) }
                     }
+                    // for performance reasons the thread is paused in each iteration for 100ms
+                    Thread.sleep(100)
                 } catch (e: IOException) {
                     Log.d(TAG_LOOPER_SERVICE, "Input stream was disconnected", e)
                     break
