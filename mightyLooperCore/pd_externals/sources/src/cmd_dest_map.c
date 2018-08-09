@@ -1,4 +1,4 @@
-#include "m_pd.h"  
+#include "m_pd.h"
 #include "search.h"
 #include "stdlib.h"
 #include "string.h"
@@ -22,12 +22,12 @@ int cmd_dest_map_compar(const void *l, const void *r) {
 	const cmd_dest_map *lr = r;
 	return strcmp(lm->key, lr->key);
 }
-	
+
 /**
- * Adds signal-command pair to map
+ * Adds command-destination pair to map
  *
- * @param sig pointer to command string
- * @param cmd pointer to destination string 
+ * @param cmd pointer to command string
+ * @param dest pointer to destination string
  */
 void add_cmd_dest_pair(char *cmd, char *dest) {
 	cmd_dest_map *pair= malloc(sizeof(cmd_dest_map));
@@ -52,6 +52,9 @@ void init_cmd_dest_map(void) {
 	add_cmd_dest_pair("flag_swap_versions", "track_manager");
 	//add_cmd_dest_pair("flag_channel_switch_looping", "player");	
 	//add_cmd_dest_pair("mute_channel", "player");
+
+	add_cmd_dest_pair("set_tempo", "click");
+	add_cmd_dest_pair("set_time_signature", "click");
 }
 
 /**
@@ -69,4 +72,3 @@ char *get_dest_for_cmd(char *cmd) {
 		return (*(cmd_dest_map**)r)->value;
 	}
 }
-

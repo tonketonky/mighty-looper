@@ -1,14 +1,14 @@
-#include "m_pd.h"  
+#include "m_pd.h"
 #include "symb_id_map.h"
 #include "helpers_and_types.h"
 #include "stdlib.h"
 
 // pointer to ml_recorder class
-static t_class *ml_recorder_class;  
- 
+static t_class *ml_recorder_class;
+
 // data space for ml_recorder class
-typedef struct _ml_recorder {  
-  t_object  					x_obj;  
+typedef struct _ml_recorder {
+  t_object  					x_obj;
 
 	t_int 							is_flagged; 							// indicates whether a track is flagged for recording
 
@@ -33,7 +33,7 @@ typedef struct _ml_recorder {
 	t_atom 							cmd_args[5]; 							// array of arguments for commands that are sent out of the object
 
 	t_outlet 						*cmd_out, *cmd_dest_out; 	// outlets for commands sent out of the object and for symbols that sets their destination
-} t_ml_recorder;  
+} t_ml_recorder;
 
 
 /******************************************************************
@@ -60,24 +60,24 @@ void flag_track(t_ml_recorder *x, t_symbol *phrase, t_symbol *channel, t_symbol 
 void notify_about_started_recording(t_ml_recorder *x) {
 	SETSYMBOL(x->cmd_args, x->recorded_channel);
 	SETSYMBOL(x->cmd_args+1, x->recorded_track);
-	t_symbol *cmd = gensym("recording_started");	
+	t_symbol *cmd = gensym("recording_started");
 
 	// notify track manager
 	outlet_symbol(x->cmd_dest_out, gensym("track_manager"));
 	outlet_anything(x->cmd_out, cmd, 2, x->cmd_args);
 
-	// notify arduino signal handler
-	outlet_symbol(x->cmd_dest_out, gensym("arduino_signal_handler"));
+	// notify message handler
+	outlet_symbol(x->cmd_dest_out, gensym("message_handler"));
 	outlet_anything(x->cmd_out, cmd, 2, x->cmd_args);
 }
 
 void notify_about_stopped_recording(t_ml_recorder *x) {
 	SETSYMBOL(x->cmd_args, x->recorded_channel);
 	SETSYMBOL(x->cmd_args+1, x->recorded_track);
-	t_symbol *cmd = gensym("recording_stopped");	
+	t_symbol *cmd = gensym("recording_stopped");
 
-	// notify arduino signal handler
-	outlet_symbol(x->cmd_dest_out, gensym("arduino_signal_handler"));
+	// notify message handler
+	outlet_symbol(x->cmd_dest_out, gensym("message_handler"));
 	outlet_anything(x->cmd_out, cmd, 2, x->cmd_args);
 }
 
@@ -87,7 +87,7 @@ void start_recording(t_ml_recorder *x) {
 		// allocation method is not "none" -> allocation will be needed
 
 		outlet_symbol(x->cmd_dest_out, gensym("table_allocator"));
-	
+
 		// add table to allocator so it will be allocated when allocation starts
 		SETSYMBOL(x->cmd_args, x->flagged_phrase);
 		SETSYMBOL(x->cmd_args+1, x->flagged_channel);
@@ -100,7 +100,7 @@ void start_recording(t_ml_recorder *x) {
 		// start allocation with flagged allocation method
 		SETFLOAT(x->cmd_args, x->flagged_alloc_method);
 		outlet_anything(x->cmd_out, gensym("start_allocation"), 1, x->cmd_args);
-	
+
 		if(x->flagged_alloc_method == FREE_LENGTH) {
 			// in case of free-length allocation method start counting beats by click
 			outlet_symbol(x->cmd_dest_out, gensym("click"));
@@ -109,7 +109,7 @@ void start_recording(t_ml_recorder *x) {
 		}
 	}
 
-	// get destination symbol for corresponding tabwrite object according to channel 
+	// get destination symbol for corresponding tabwrite object according to channel
 	char *dest_str = malloc(20);
 
 	char *channel_str = malloc(5);
@@ -126,21 +126,21 @@ void start_recording(t_ml_recorder *x) {
 	SETSYMBOL(
 		x->cmd_args,
 		get_table_name_symb(
-			x->flagged_phrase, 
-			x->flagged_channel, 
+			x->flagged_phrase,
+			x->flagged_channel,
 			x->flagged_track,
 			x->flagged_layer,
 			x->flagged_version
 		)
 	);
-	
+
 	outlet_anything(x->cmd_out, gensym("set"), 1, x->cmd_args);
 	// send bang to tabwrite object to start recording
 	outlet_bang(x->cmd_out);
 
 	x->is_flagged = 0;
 	x->is_recording = 1;
-	
+
 	x->recorded_phrase = x->flagged_phrase;
 	x->recorded_channel = x->flagged_channel;
 	x->recorded_track = x->flagged_track;
@@ -154,7 +154,7 @@ void start_recording(t_ml_recorder *x) {
  * ml_recorder class methods
  *******************************************************************************/
 
-void ml_recorder_flag_recording(t_ml_recorder *x, t_symbol *s, int argc, t_atom *argv) {	
+void ml_recorder_flag_recording(t_ml_recorder *x, t_symbol *s, int argc, t_atom *argv) {
 
 	t_symbol *phrase = atom_getsymbol(argv);
 	t_symbol *channel = atom_getsymbol(argv+1);
@@ -183,7 +183,7 @@ void ml_recorder_stop_recording(t_ml_recorder *x, t_symbol *channel, t_symbol *t
 			// now flag allocation to stop at the end of the cycle (set_up_new_cycle signal)
 			outlet_symbol(x->cmd_dest_out, gensym("table_allocator"));
 			outlet_anything(x->cmd_out, gensym("flag_stop_allocation"), 0, 0);
-			// stop counting beats by click	
+			// stop counting beats by click
 			outlet_symbol(x->cmd_dest_out, gensym("click"));
 			outlet_anything(x->cmd_out, gensym("stop_counting_beats"), 0, 0);
 		}	else {
@@ -201,23 +201,23 @@ void ml_recorder_set_up_new_cycle(t_ml_recorder *x) {
 		// if recording is in progress stop it and notify
 		x->is_recording = 0;
 		notify_about_stopped_recording(x);
-	}	
+	}
 }
 
 void ml_recorder_new_cycle(t_ml_recorder *x) {
 	if(x->is_flagged == 1) {
 		// if recording is flagged for start, start it
 		start_recording(x);
-	}	
+	}
 }
 
 void ml_recorder_new_bar(t_ml_recorder *x) {
 	if(x->rec_countdown != -1) {
 		// countdown for recording is set
-		
+
 		// print countdown to console
 		postfloat(x->rec_countdown);
-				
+
 		if(x->rec_countdown-- == 0) {
 			// if countdown is 0 start recording; decrement countdown to -1
 			start_recording(x);
@@ -229,22 +229,22 @@ void ml_recorder_new_bar(t_ml_recorder *x) {
  * constructor
  **************************************************************/
 
-void *ml_recorder_new(void) {  
-  t_ml_recorder *x = (t_ml_recorder *)pd_new(ml_recorder_class);  
-	
+void *ml_recorder_new(void) {
+  t_ml_recorder *x = (t_ml_recorder *)pd_new(ml_recorder_class);
+
 	init_symb_id_map();
-	
+
 	x->is_recording = 0;
 	x->is_flagged = 0;
 
 	x->rec_countdown = -1;
-	
+
 	// outlets
 	x->cmd_out = outlet_new(&x->x_obj, 0);
 	x->cmd_dest_out = outlet_new(&x->x_obj, &s_symbol);
-	
-	return (void *)x;  
-}  
+
+	return (void *)x;
+}
 
 /**************************************************************
  * destructor
@@ -259,14 +259,14 @@ void ml_recorder_free(t_ml_recorder *x) {
  * Setup function for ml_recorder class
  **************************************************************/
 
-void ml_recorder_setup(void) {  
-  ml_recorder_class = class_new(gensym("ml_recorder"),  
-        (t_newmethod)ml_recorder_new,  
+void ml_recorder_setup(void) {
+  ml_recorder_class = class_new(gensym("ml_recorder"),
+        (t_newmethod)ml_recorder_new,
         (t_method)ml_recorder_free,
-				sizeof(t_ml_recorder),  
-        CLASS_DEFAULT, 0);  
+				sizeof(t_ml_recorder),
+        CLASS_DEFAULT, 0);
 
-  class_addmethod(ml_recorder_class, 
+  class_addmethod(ml_recorder_class,
 		(t_method)ml_recorder_flag_recording,
 		gensym("flag_recording"),
 		A_GIMME, 0);
@@ -277,15 +277,15 @@ void ml_recorder_setup(void) {
 		A_DEFSYMBOL,
 		A_DEFSYMBOL, 0);
 
-	class_addmethod(ml_recorder_class, 
+	class_addmethod(ml_recorder_class,
 		(t_method)ml_recorder_set_up_new_cycle,
 		gensym("set_up_new_cycle"), 0);
 
-	class_addmethod(ml_recorder_class, 
+	class_addmethod(ml_recorder_class,
 		(t_method)ml_recorder_new_cycle,
 		gensym("new_cycle"), 0);
 
-	class_addmethod(ml_recorder_class, 
+	class_addmethod(ml_recorder_class,
 		(t_method)ml_recorder_new_bar,
 		gensym("new_bar"), 0);
 }
