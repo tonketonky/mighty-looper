@@ -1,4 +1,4 @@
-#N canvas 209 198 1855 999 10;
+#N canvas 65 81 1855 999 10;
 #N canvas 65 146 1782 934 init 0;
 #X obj 510 68 loadbang;
 #X msg 510 89 bang \; pd dsp 1 \;;
@@ -290,7 +290,7 @@
 #X obj 18 154 tabwrite~ phrase_1_monitor;
 #X obj 35 217 +~;
 #X obj 76 234 metro 100;
-#X obj 97 315 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+#X obj 97 315 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
 1;
 #X text 97 215 monitor ON/OFF;
 #X obj 36 255 tabwrite~ phrase_1_monitor;
@@ -817,18 +817,15 @@
 #X msg 1098 236 flag_switch_looping ch1 t1;
 #X msg 1159 256 flag_switch_looping ch1 t2;
 #X obj 1080 294 r set_up_new_cycle;
-#X obj 383 67 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+#X obj 383 47 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
 -1;
-#X obj 652 82 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+#X obj 727 62 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
 -1;
 #X obj 383 221 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
-#X obj 652 236 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+#X obj 727 236 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
-#X text 406 64 ARDUINO SIGNAL HANDLER;
-#X obj 428 164 ml_arduino_signal_handler;
-#X obj 483 197 s \$1;
-#X obj 404 106 r arduino_signal_handler;
+#X obj 483 206 s \$1;
 #X obj 428 133 comport 1 9600;
 #X obj 140 764 r resizing_metro;
 #X obj 69 827 r set_up_new_cycle;
@@ -867,6 +864,18 @@
 #X msg 576 307 flag_recording ch2 t2;
 #X msg 561 332 flag_swap_versions ch2 t1;
 #X msg 556 362 flag_swap_versions ch2 t2;
+#X obj 242 160 print muo;
+#X obj 797 141 t b a;
+#X msg 797 170 10;
+#X msg 797 115 print set_tempo/\$1;
+#X msg 542 104 devicename /tmp/mlbtslave;
+#X obj 542 76 loadbang;
+#X msg 797 89 100;
+#X text 406 44 MESSAGE HANDLER;
+#X obj 404 106 r message_handler;
+#X obj 428 173 ml_message_handler;
+#X obj 542 133 comport;
+#X text 839 91 Example of message sent to gui;
 #X connect 3 0 5 0;
 #X connect 3 1 5 1;
 #X connect 4 0 7 0;
@@ -1010,36 +1019,45 @@
 #X connect 157 0 158 0;
 #X connect 158 0 160 0;
 #X connect 159 0 160 0;
-#X connect 162 0 163 0;
-#X connect 162 1 163 1;
-#X connect 164 0 162 0;
-#X connect 165 0 162 0;
-#X connect 166 0 169 0;
-#X connect 167 0 141 0;
-#X connect 168 0 145 0;
-#X connect 169 0 141 0;
-#X connect 170 0 171 0;
-#X connect 170 0 179 0;
-#X connect 171 0 176 0;
-#X connect 172 0 170 0;
-#X connect 173 0 178 0;
-#X connect 174 0 170 0;
-#X connect 175 0 177 0;
-#X connect 176 0 175 0;
-#X connect 177 0 182 0;
-#X connect 178 0 177 1;
-#X connect 179 0 180 0;
-#X connect 179 1 180 1;
-#X connect 181 0 179 0;
-#X connect 183 0 185 0;
-#X connect 183 0 184 0;
-#X connect 184 0 186 0;
-#X connect 185 0 186 0;
+#X connect 162 0 203 0;
+#X connect 163 0 166 0;
+#X connect 164 0 141 0;
+#X connect 165 0 145 0;
+#X connect 166 0 141 0;
+#X connect 167 0 168 0;
+#X connect 167 0 176 0;
+#X connect 168 0 173 0;
+#X connect 169 0 167 0;
+#X connect 169 0 194 0;
+#X connect 170 0 175 0;
+#X connect 171 0 167 0;
+#X connect 172 0 174 0;
+#X connect 173 0 172 0;
+#X connect 174 0 179 0;
+#X connect 175 0 174 1;
+#X connect 176 0 177 0;
+#X connect 176 1 177 1;
+#X connect 178 0 176 0;
+#X connect 180 0 182 0;
+#X connect 180 0 181 0;
+#X connect 181 0 183 0;
+#X connect 182 0 183 0;
+#X connect 185 0 22 0;
+#X connect 187 0 186 0;
 #X connect 188 0 22 0;
-#X connect 190 0 189 0;
-#X connect 191 0 22 0;
-#X connect 192 0 189 0;
+#X connect 189 0 186 0;
+#X connect 190 0 3 0;
+#X connect 191 0 3 0;
+#X connect 192 0 3 0;
 #X connect 193 0 3 0;
-#X connect 194 0 3 0;
-#X connect 195 0 3 0;
-#X connect 196 0 3 0;
+#X connect 195 0 196 0;
+#X connect 195 1 204 0;
+#X connect 196 0 204 0;
+#X connect 197 0 195 0;
+#X connect 198 0 204 0;
+#X connect 199 0 198 0;
+#X connect 200 0 197 0;
+#X connect 202 0 203 0;
+#X connect 203 0 161 0;
+#X connect 203 1 161 1;
+#X connect 204 0 203 0;
