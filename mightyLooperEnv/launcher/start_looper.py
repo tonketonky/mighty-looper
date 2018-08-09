@@ -1,5 +1,6 @@
 import bt_service
 import signal
+import os
 
 def signal_handler(sig, frame):
         print('SIGINT received')
