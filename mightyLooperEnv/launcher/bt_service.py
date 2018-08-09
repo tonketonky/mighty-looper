@@ -68,7 +68,7 @@ class SerialBridge:
     def listen_for_data(self):
         print('Listening for data from slave...')
         while True:
-            data = self.master.readline()
+            data = self.master.readline().decode("utf-8").strip()
             self.bt_server.send(data)
 
     def write(self, data):
