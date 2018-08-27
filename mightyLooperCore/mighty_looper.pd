@@ -1,4 +1,4 @@
-#N canvas 65 81 1855 999 10;
+#N canvas 65 85 1855 999 10;
 #N canvas 65 146 1782 934 init 0;
 #X obj 510 68 loadbang;
 #X msg 510 89 bang \; pd dsp 1 \;;
@@ -874,8 +874,8 @@
 #X text 406 44 MESSAGE HANDLER;
 #X obj 404 106 r message_handler;
 #X obj 428 173 ml_message_handler;
-#X obj 542 133 comport;
 #X text 839 91 Example of message sent to gui;
+#X obj 542 133 comport 1 9600;
 #X connect 3 0 5 0;
 #X connect 3 1 5 1;
 #X connect 4 0 7 0;
@@ -1051,13 +1051,13 @@
 #X connect 192 0 3 0;
 #X connect 193 0 3 0;
 #X connect 195 0 196 0;
-#X connect 195 1 204 0;
-#X connect 196 0 204 0;
+#X connect 195 1 205 0;
+#X connect 196 0 205 0;
 #X connect 197 0 195 0;
-#X connect 198 0 204 0;
+#X connect 198 0 205 0;
 #X connect 199 0 198 0;
 #X connect 200 0 197 0;
 #X connect 202 0 203 0;
 #X connect 203 0 161 0;
 #X connect 203 1 161 1;
-#X connect 204 0 203 0;
+#X connect 205 0 203 0;
