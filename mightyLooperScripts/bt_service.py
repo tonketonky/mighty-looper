@@ -2,7 +2,9 @@ import bluetooth
 import os
 import serial
 import threading
+import errno
 from pathlib import Path
+from socket import error as SocketError
 
 class BtServer:
     'Bluetooth server for connection with MightyLooper GUI Android app'
@@ -29,9 +31,15 @@ class BtServer:
 
     def listen_for_data(self):
         print ('Listening for data...')
-        while True:
-            data = self.client_sock.recv(1024)
-            self.serial_bridge.write(data)
+        try:
+            while True:
+                data = self.client_sock.recv(1024)
+                self.serial_bridge.write(data)
+        
+        except IOError as e:
+            pass
+        print ('Disconnected')
+
 
     def clean_up(self):
         client_sock.close()
