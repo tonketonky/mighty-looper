@@ -17,6 +17,8 @@ def main():
         global shutdown_flag
         shutdown_flag = True
 
+    print('[ml] running...')
+
     # start bluetooth server
     bt_server.start()
 
