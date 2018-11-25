@@ -35,7 +35,7 @@ class BtServer(threading.Thread):
         print('[bluetooth server] listening for connection...')
         while not self.shutdown_flag.is_set():
             if self.connected:
-                # listen for data
+                # listen for data from gui
                 try:
                     data = self.client_sock.recv(1024)
                 except bluetooth.btcommon.BluetoothError as e:
@@ -51,6 +51,7 @@ class BtServer(threading.Thread):
                     else:
                         raise e
                 # data received, write to serial bridge
+                print('[bluetooth server] gui -> core: ' + str(data))
                 self.serial_bridge.write(data)
             else:
                 # listen for connection
@@ -59,12 +60,13 @@ class BtServer(threading.Thread):
                     self.client_sock.settimeout(1)
                     self.connected = True
                     print('[bluetooth server] accepted connection from ', self.address)
-                    print('[bluetooth server] listening for data...')
+                    print('[bluetooth server] listening for data from gui...')
                 except bluetooth.btcommon.BluetoothError:
                     # connection timeout
                     continue
 
     def send(self, data):
+        print('[bluetooth server] core -> gui: ' + str(data))
         self.client_sock.send(data)
 
     def join(self, timeout=None):
@@ -110,7 +112,7 @@ class SerialBridge(threading.Thread):
         self.terminals_thread = subprocess.Popen('socat -d -d pty,link={},raw,echo=0 pty,link={},raw,echo=0 > /dev/null 2>&1'.format(master_link_path, slave_link_path), shell=True, preexec_fn=os.setpgrp)
 
     def listen(self):
-        print('[serial bridge] listening for data...')
+        print('[serial bridge] listening for data from core...')
         while not self.shutdown_flag.is_set():
             data = self.master.readline().decode("utf-8").strip()
             if data != "":
