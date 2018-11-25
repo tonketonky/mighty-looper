@@ -10,7 +10,7 @@ shutdown_flag = False
 def main():
 
     def signal_handler(sig, frame):
-        print('SIGINT received')
+        print('[ml] SIGINT received')
         os.killpg(os.getpgid(pd_process.pid), signal.SIGINT)
         print('[looper core] stopped')
         bt_server.join()
@@ -36,7 +36,7 @@ def main():
     while not shutdown_flag:
         time.sleep(1)
 
-    print('bye')
+    print('[ml] bye')
 
 if __name__ == '__main__':
     main()
