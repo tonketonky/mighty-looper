@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         // when Quit button pressed stop looper service and finish
         builder.setPositiveButton("Quit") { _, _ ->
             stopService(Intent(this, LooperService::class.java))
-            finish()
+            finishAffinity()
         }
         // when Suspend button pressed proceed with default back button behaviour
         builder.setNegativeButton("Suspend") { _, _ -> super.onBackPressed()}

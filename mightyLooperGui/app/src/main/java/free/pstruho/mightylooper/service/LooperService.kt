@@ -17,6 +17,7 @@ import free.pstruho.mightylooper.utils.ACT_UPDATE_LOOPER_LIST
 import free.pstruho.mightylooper.utils.SPP_UUID
 import free.pstruho.mightylooper.utils.getIntentFromMessage
 import java.io.*
+import java.lang.IllegalArgumentException
 
 class LooperService : Service() {
 
@@ -29,6 +30,8 @@ class LooperService : Service() {
 
     private lateinit var mConnectThread: ConnectThread
     private lateinit var mConnectedThread: ConnectedThread
+
+    private var mConnected = false
 
     private val mReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -147,6 +150,7 @@ class LooperService : Service() {
             try {
                 mSocket!!.connect()
                 Log.i(TAG_LOOPER_SERVICE, "Socket connected")
+                mConnected = true
             } catch (connectException: IOException) {
                 Log.e(TAG_LOOPER_SERVICE, "Could not connect to device, closing socket", connectException)
                 try {
@@ -196,7 +200,8 @@ class LooperService : Service() {
             mOutStream = tmpOut
         }
 
-        val bufferedReader = BufferedReader(InputStreamReader(mInStream))
+        //val bufferedReader = BufferedReader(InputStreamReader(mInStream))
+        val bufferedReader = mInStream!!.bufferedReader()
 
         override fun run() {
             val mBuffer = CharArray(128)
@@ -204,7 +209,7 @@ class LooperService : Service() {
             //var bytes = ByteArray(10)
             var msg: String
 
-            while (true) {
+            while (mConnected) {
                 try {
                     // for some reason read() method on InputStream get stuck in blocked state even though data is received
                     // this seems to be hardware specific issue, on some devices it might work
@@ -220,9 +225,15 @@ class LooperService : Service() {
                     }
                     // for performance reasons the thread is paused in each iteration for 100ms
                     Thread.sleep(100)
-                } catch (e: IOException) {
-                    Log.d(TAG_LOOPER_SERVICE, "Input stream was disconnected", e)
-                    break
+                } catch (e: Exception) {
+                    when(e) {
+                        // TODO: investigate IllegalArgumentException here
+                        is IOException, is IllegalArgumentException -> {
+                            Log.d(TAG_LOOPER_SERVICE, "Input stream was disconnected", e)
+                            mConnected = false
+                        }
+                        else -> throw e
+                    }
                 }
             }
         }

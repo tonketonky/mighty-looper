@@ -72,13 +72,13 @@ class BtServer(threading.Thread):
     def join(self, timeout=None):
         self.shutdown_flag.set()
         try:
-            self.server_sock.close()
-            print('[bluetooth server] server socket closed')
+            self.client_sock.close()
+            print('[bluetooth server] client socket closed')
         except AttributeError:
             pass
         try:
-            self.client_sock.close()
-            print('[bluetooth server] client socket closed')
+            self.server_sock.close()
+            print('[bluetooth server] server socket closed')
         except AttributeError:
             pass
         self.serial_bridge.join()
@@ -115,7 +115,7 @@ class SerialBridge(threading.Thread):
         print('[serial bridge] listening for data from core...')
         while not self.shutdown_flag.is_set():
             data = self.master.readline().decode("utf-8").strip()
-            if data != "":
+            if data != "" and not self.shutdown_flag.is_set():
                 self.bt_server.send(data)
 
     def write(self, data):
