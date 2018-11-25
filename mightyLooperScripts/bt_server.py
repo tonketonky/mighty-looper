@@ -25,36 +25,45 @@ class BtServer(threading.Thread):
         self.serial_bridge = SerialBridge(self)
         self.serial_bridge.start();
         bluetooth.advertise_service( self.server_sock, "Mighty Looper BT Service", service_id = uuid, profiles = [ bluetooth.SERIAL_PORT_PROFILE ] )
-        self.listen_for_connection()
+        self.listen()
 
     def send(self, data):
         self.client_sock.send(data)
 
-    def listen_for_connection(self):
-        print ('Listening for connection...')
+
+    def listen(self):
+        self.connected = False
+        print ('Listening for connection')
         while not self.shutdown_flag.is_set():
-            try:
-                self.client_sock, self.address = self.server_sock.accept()
-                self.client_sock.settimeout(1)
-                print ('Accepted connection from ', self.address)
-                break
-            except bluetooth.btcommon.BluetoothError:
-                continue
-
-        if not self.shutdown_flag.is_set():
-            self.listen_for_data();
-
-    def listen_for_data(self):
-        print ('Listening for data...')
-        try:
-            while not self.shutdown_flag.is_set():
+            if self.connected:
+                # listen for data
                 try:
                     data = self.client_sock.recv(1024)
-                except bluetooth.btcommon.BluetoothError:
-                   continue
+                except bluetooth.btcommon.BluetoothError as e:
+                    if e.args[0] == 'timed out':
+                        # read timeout
+                        continue
+                    elif e.args[0] == '(104, \'Connection reset by peer\')':
+                        # lost connection
+                        self.connected = False
+                        print ('Disconnected')
+                        print ('Listening for connection')
+                        continue
+                    else:
+                        raise e
+                # data received, write to serial bridge
                 self.serial_bridge.write(data)
-        except IOError:
-            pass
+            else:
+                # listen for connection
+                try:
+                    self.client_sock, self.address = self.server_sock.accept()
+                    self.client_sock.settimeout(1)
+                    self.connected = True
+                    print ('Accepted connection from ', self.address)
+                    print ('Listening for data')
+                except bluetooth.btcommon.BluetoothError:
+                    # connection timeout
+                    continue
 
     def join(self, timeout=None):
         self.shutdown_flag.set()
