@@ -17,6 +17,7 @@ class BtServer(threading.Thread):
         super(BtServer, self).__init__()
         self.shutdown_flag = threading.Event()
         self.is_up = False
+        self.is_connected = False
 
     def run(self):
         self.server_sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
@@ -31,10 +32,9 @@ class BtServer(threading.Thread):
         self.listen()
 
     def listen(self):
-        self.connected = False
         print('[bluetooth server] listening for connection...')
         while not self.shutdown_flag.is_set():
-            if self.connected:
+            if self.is_connected:
                 # listen for data from gui
                 try:
                     data = self.client_sock.recv(1024)
@@ -44,7 +44,7 @@ class BtServer(threading.Thread):
                         continue
                     elif e.args[0] == '(104, \'Connection reset by peer\')':
                         # lost connection
-                        self.connected = False
+                        self.is_connected = False
                         print('[bluetooth server] disconnected')
                         print('[bluetooth server] listening for connection...')
                         continue
@@ -58,7 +58,7 @@ class BtServer(threading.Thread):
                 try:
                     self.client_sock, self.address = self.server_sock.accept()
                     self.client_sock.settimeout(1)
-                    self.connected = True
+                    self.is_connected = True
                     print('[bluetooth server] accepted connection from ', self.address)
                     print('[bluetooth server] listening for data from gui...')
                 except bluetooth.btcommon.BluetoothError:
@@ -66,8 +66,11 @@ class BtServer(threading.Thread):
                     continue
 
     def send(self, data):
-        print('[bluetooth server] core -> gui: ' + str(data))
-        self.client_sock.send(data)
+        if self.is_connected:
+            print('[bluetooth server] core -> gui: ' + str(data))
+            self.client_sock.send(data)
+        else:
+            print('[bluetooth server] client not connected, dropping signal from core: ' + str(data))
 
     def join(self, timeout=None):
         self.shutdown_flag.set()
