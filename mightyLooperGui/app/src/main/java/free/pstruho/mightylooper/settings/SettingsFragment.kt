@@ -15,6 +15,11 @@ import free.pstruho.mightylooper.utils.buildSetTempoMessage
 
 class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
 
+    private val tempoPreferenceKey by lazy { getString(R.string.tempo_preference_key) }
+    private val shouldSendValueToCore by lazy { hashMapOf(
+            tempoPreferenceKey to true
+    )}
+
     private lateinit var mLooperService: LooperService
     private var mBound = false
 
@@ -23,7 +28,9 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
             val action = intent.action
             when (action) {
                 MSG_CMD_SET_TEMPO -> {
-                    (findPreference("tempo_preference") as TempoPreference).update(intent.getIntExtra(ACT_ARG_TEMPO, 0))
+                    // set 'should send' flag to false because this preference change was invoked by core
+                    shouldSendValueToCore[tempoPreferenceKey] = false
+                    (findPreference(tempoPreferenceKey) as TempoPreference).update(intent.getIntExtra(ACT_ARG_TEMPO, 0))
                 }
             }
         }
@@ -98,7 +105,9 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         when(key) {
-            "tempo_preference" -> mLooperService.write(buildSetTempoMessage(sharedPreferences?.getInt(key, 0) ?: 0))
+            tempoPreferenceKey -> if (shouldSendValueToCore[tempoPreferenceKey] != false) mLooperService.write(buildSetTempoMessage(sharedPreferences?.getInt(key, 0) ?: 0))
         }
+        // if given preference has corresponding 'should send' flag set to false, reset it to true
+        shouldSendValueToCore[key]?.let { if(!it) shouldSendValueToCore[key!!] = true }
     }
 }
