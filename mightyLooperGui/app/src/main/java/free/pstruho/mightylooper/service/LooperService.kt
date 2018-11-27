@@ -73,7 +73,9 @@ class LooperService : Service() {
     }
 
     fun write(data: String) {
-        mConnectedThread.write(data.toByteArray())
+        if (mConnected) {
+            mConnectedThread.write(data.toByteArray())
+        }
     }
 
     fun connectLooper(address: String) {
@@ -116,10 +118,10 @@ class LooperService : Service() {
     }
 
     override fun onDestroy() {
-        if(mConnectThread != null) {
+        if(::mConnectThread.isInitialized) {
             mConnectThread.cancel()
         }
-        if(mConnectedThread != null) {
+        if(::mConnectedThread.isInitialized) {
             mConnectedThread.cancel()
         }
         mBluetoothAdapter.cancelDiscovery()
