@@ -4,9 +4,9 @@
 #define VERSION_B gensym("b")
 
 typedef enum{
-	FREE_LENGTH,
-	FIXED_LENGTH,
-	NONE
+    FREE_LENGTH,
+    FIXED_LENGTH,
+    NONE
 } allocation_method;
 
 t_symbol *get_opp_phrase(t_symbol *phrase);
