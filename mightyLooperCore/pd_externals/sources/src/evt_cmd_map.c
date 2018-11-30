@@ -1,8 +1,9 @@
 #include "m_pd.h"
+#include "helpers_and_types.h"
 #include "search.h"
+#include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "stdio.h"
 
 /* data structs and vars for map implementation - begin */
 typedef struct {
@@ -46,31 +47,24 @@ void init_evt_cmd_map(void) {
     /* event codes from record buttons */
 
     // single press for track - recording ON/OFF
-    add_evt_cmd_pair("r_sp_t_r=0", "flag_recording");
-    add_evt_cmd_pair("r_sp_t_r=1", "stop_recording");
+    add_evt_cmd_pair(strcat(malloc(sizeof(EVT_REC_TRACK_BUTTON_SP) + 4), "_r=0"), CMD_REC_FLAG);
+    add_evt_cmd_pair(strcat(malloc(sizeof(EVT_REC_TRACK_BUTTON_SP) + 4), "_r=1"), CMD_REC_STOP);
     // long press for track - recording ON/OFF
-    //add_evt_cmd_pair("r_lp_t_r=0", "flag_recording_both_phrases");
-    //add_evt_cmd_pair("r_lp_t_r=1", "cancel_recording");
+    //add_evt_cmd_pair(strcat(EVT_REC_TRACK_BUTTON_LP, "_r=0"), CMD_REC_FLAG_BOTH_PHRASES);
+    //add_evt_cmd_pair(strcat(EVT_REC_TRACK_BUTTON_LP, "_r=1"), CMD_REC_CANCEL);
 
     /* event codes from play buttons */
 
     // single press for track
-    add_evt_cmd_pair("p_sp_t", "flag_switch_looping");
+    add_evt_cmd_pair(EVT_PLAY_TRACK_BUTTON_SP, CMD_TRACK_FLAG_SWITCH_LOOPING);
     // double press for track
-    //add_evt_cmd_pair("p_dp_t", "mute_track");
+    //add_evt_cmd_pair(EVT_PLAY_TRACK_BUTTON_DP, CMD_TRACK_SWITCH_MUTE);
     // long press for track
-    add_evt_cmd_pair("p_lp_t", "flag_swap_versions");
+    add_evt_cmd_pair(EVT_PLAY_TRACK_BUTTON_LP, CMD_TRACK_FLAG_SWAP_VERSIONS);
     // single press for channel
-    //add_evt_cmd_pair("p_sp_ch", "flag_channel_switch_looping");
+    //add_evt_cmd_pair(EVT_PLAY_CHANNEL_BUTTON_SP, CMD_FLAG_CHANNEL_SWITCH_LOOPING);
     // long press for channel
-    //add_evt_cmd_pair("p_dp_ch", "mute_channel");
-
-    /* event codes from click settings */
-
-    // set tempo
-    add_evt_cmd_pair("c_t", "set_tempo");
-    // set time signature
-    add_evt_cmd_pair("c_ts", "set_time_signature");
+    //add_evt_cmd_pair(EVT_PLAY_CHANNEL_BUTTON_DP, CMD_CHANNEL_SWITCH_MUTE);
 }
 
 char *get_cmd_for_evt(char *key) {

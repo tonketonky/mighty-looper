@@ -17,8 +17,9 @@ typedef struct _ml_message_handler {
 
     t_int       is_processing;
 
-    char        buf[8];
-    char        *event_code;
+    char        buf[32];
+    char        *msg_code;
+    char        *msg_category;
 
     t_int       num_of_chars_processed;
     t_int       num_of_literals_processed;
@@ -51,6 +52,26 @@ t_int *get_is_recording_marker(t_ml_message_handler *x, t_symbol *channel, t_sym
     return &(x->is_recording_markers[channel_id][track_id]);
 }
 
+/********************************************************************
+ * other functions
+ ********************************************************************/
+
+char *event_to_command(t_ml_message_handler *x, char *event_code) {
+    if(strcmp(event_code, EVT_REC_TRACK_BUTTON_SP) != 0) {
+        // interpretation of events from recording track button depends on whether given track is currently being recorded
+        // based on that add "_r=1" or "_r=0" suffix to event code and get command for it
+        int ch_id = get_id_for_symb(atom_gensym(&x->cmd_args[0]));
+        int t_id = get_id_for_symb(atom_gensym(&x->cmd_args[1]));
+        char *rec_specific_event_code = malloc(sizeof(event_code) + 4);
+        sprintf(rec_specific_event_code, "%s_r=%li", event_code, x->is_recording_markers[ch_id][t_id]);
+        return get_cmd_for_evt(rec_specific_event_code);
+        free(rec_specific_event_code);
+    } else {
+        // for other events just get command
+        return get_cmd_for_evt(event_code);
+    }
+}
+
 /*******************************************************************************
  * ml_message_handler class methods
  *******************************************************************************/
@@ -73,9 +94,12 @@ void ml_message_handler_process_input(t_ml_message_handler *x, t_floatarg receiv
                 x->num_of_chars_processed = 0;
 
                 if(x->num_of_literals_processed == 0) {
-                    // currently processed literal is event code, save it to x->event_code
-                    x->event_code = strdup(x->buf);
-                } else {
+                    // currently processed literal is message category, save it to x->msg_category
+                    x->msg_category = strdup(x->buf);
+                } else if(x->num_of_literals_processed == 1) {
+                    // currently processed literal is event code, save it to x->msg_code
+                    x->msg_code = strdup(x->buf);
+                }else {
                     // currently processed literal is argument, add it to atom list x->cmd_args
                     if(x->buf[0] == '#') {
                         // numeric argument
@@ -91,26 +115,24 @@ void ml_message_handler_process_input(t_ml_message_handler *x, t_floatarg receiv
             if(receivedChar == ']') {
                 // end of processing message
                 char *cmd;
+                char *dest;
 
-                // interpretation of messages from record buttons depends on whether given track is currently being recorded,
-                // check the first char of event code, if it's 'r', append recording flag to it and get command
-                // otherwise just get command for the event code as is
-                if(x->event_code[0] == 'r') {
-                    // event code is from record button, get first 2 arguments from atom list x->cmd_args (channel and track)
-                    // find out whether given track is being recorded and get command accordingly
-                    int ch_id = get_id_for_symb(atom_gensym(&x->cmd_args[0]));
-                    int t_id = get_id_for_symb(atom_gensym(&x->cmd_args[1]));
-                    char *rec_specific_event_code = malloc(sizeof(x->event_code) + 4);
-                    sprintf(rec_specific_event_code, "%s_r=%d", x->event_code, x->is_recording_markers[ch_id][t_id]);
-                    cmd = get_cmd_for_evt(rec_specific_event_code);
-                    free(rec_specific_event_code);
+                if(strcmp(x->msg_category, CAT_EVT) != 0) {
+                    // message category is EVENT, get command for it and store it to cmd
+                    cmd = event_to_command(x, x->msg_code);
                 } else {
-                    // event code is from play button or click setting, get command for it
-                    cmd = get_cmd_for_evt(x->event_code);
+                    // message category is COMMAND, just store message code to cmd
+                    cmd = x->msg_code;
                 }
 
+                // check if cmd isn't null due to invalid event code
                 if(cmd != NULL) {
-                    // command is defined for given event code, get destination and output it along with arguments
+                    dest = get_dest_for_cmd(cmd);
+                }
+
+                // check if dest isn't null due to cmd being null
+                if(dest != NULL) {
+                    // output command along with arguments to destination
                     t_symbol *dest = gensym(get_dest_for_cmd(cmd));
                     outlet_symbol(x->cmd_dest_out, dest);
                     outlet_anything(x->cmd_out, gensym(cmd), x->num_of_literals_processed - 1, x->cmd_args);
@@ -179,13 +201,13 @@ void ml_message_handler_setup(void) {
 
     class_addmethod(ml_message_handler_class,
         (t_method)ml_message_handler_recording_started,
-        gensym("recording_started"),
+        gensym(CMD_RECORDING_STARTED),
         A_DEFSYMBOL,
         A_DEFSYMBOL, 0);
 
     class_addmethod(ml_message_handler_class,
         (t_method)ml_message_handler_recording_stopped,
-        gensym("recording_stopped"),
+        gensym(CMD_RECORDING_STOPPED),
         A_DEFSYMBOL,
         A_DEFSYMBOL, 0);
 }

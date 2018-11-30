@@ -165,7 +165,7 @@ void player_set_looping(t_ml_track_manager *x, t_symbol *channel, t_symbol *trac
     SETSYMBOL(x->cmd_args, channel);
     SETSYMBOL(x->cmd_args+1, track);
     SETFLOAT(x->cmd_args+2, is_looping);
-    outlet_anything(x->cmd_out, gensym("set_looping"), 3, x->cmd_args);
+    outlet_anything(x->cmd_out, gensym(CMD_TRACK_SET_LOOPING), 3, x->cmd_args);
 }
 
 void recorder_flag_recording(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track, allocation_method alloc_method, t_int countdown) {
@@ -179,7 +179,7 @@ void recorder_flag_recording(t_ml_track_manager *x, t_symbol *phrase, t_symbol *
     SETFLOAT(x->cmd_args+5, alloc_method);
     SETFLOAT(x->cmd_args+6, countdown);
 
-    outlet_anything(x->cmd_out, gensym("flag_recording"), 7, x->cmd_args);
+    outlet_anything(x->cmd_out, gensym(CMD_REC_FLAG), 7, x->cmd_args);
 }
 
 void layer_merger_flag_merging(t_ml_track_manager *x, t_symbol *phrase, t_symbol *channel, t_symbol *track, t_int num_of_layers, allocation_method alloc_method) {
@@ -192,7 +192,7 @@ void layer_merger_flag_merging(t_ml_track_manager *x, t_symbol *phrase, t_symbol
     SETFLOAT(x->cmd_args+4, num_of_layers);
     SETFLOAT(x->cmd_args+5, alloc_method);
 
-    outlet_anything(x->cmd_out, gensym("flag_merging"), 6, x->cmd_args);
+    outlet_anything(x->cmd_out, gensym(CMD_FLAG_MERGING), 6, x->cmd_args);
 }
 
 /********************************************************************
@@ -436,27 +436,27 @@ void ml_track_manager_setup(void) {
 
     class_addmethod(ml_track_manager_class, 
         (t_method)ml_track_manager_flag_recording,
-        gensym("flag_recording"),
+        gensym(CMD_REC_FLAG),
         A_DEFSYMBOL,
         A_DEFSYMBOL, 0);
 
     class_addmethod(ml_track_manager_class,
         (t_method)ml_track_manager_recording_started,
-        gensym("recording_started"),
+        gensym(CMD_RECORDING_STARTED),
         A_DEFSYMBOL,
         A_DEFSYMBOL, 0);
 
     class_addmethod(ml_track_manager_class, 
         (t_method)ml_track_manager_swap_phrases,
-        gensym("swap_phrases"), 0);
+        gensym(CMD_SWAP_PHRASES), 0);
 
     class_addmethod(ml_track_manager_class, 
         (t_method)ml_track_manager_flag_swap_versions,
-        gensym("flag_swap_versions"),
+        gensym(CMD_TRACK_FLAG_SWAP_VERSIONS),
         A_DEFSYMBOL, 
         A_DEFSYMBOL, 0);
  
     class_addmethod(ml_track_manager_class, 
         (t_method)ml_track_manager_set_up_new_cycle,
-        gensym("set_up_new_cycle"), 0);
+        gensym(CMD_SET_UP_NEW_CYCLE), 0);
 }

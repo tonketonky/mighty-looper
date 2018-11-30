@@ -271,18 +271,18 @@ void ml_table_allocator_setup(void) {
 
     class_addmethod(ml_table_allocator_class, 
         (t_method)ml_table_allocator_start_allocation,
-        gensym("start_allocation"),
+        gensym(CMD_START_ALLOCATION),
         A_DEFFLOAT, 0);
 
     class_addmethod(ml_table_allocator_class,
         (t_method)ml_table_allocator_flag_stop_allocation,
-        gensym("flag_stop_allocation"), 0);
+        gensym(CMD_FLAG_STOP_ALLOCATION), 0);
 
     class_addbang(ml_table_allocator_class, ml_table_allocator_bang);
 
     class_addmethod(ml_table_allocator_class,
         (t_method)ml_table_allocator_add_table,
-        gensym("add_table"),
+        gensym(CMD_ADD_TABLE),
         A_DEFSYMBOL,
         A_DEFSYMBOL,
         A_DEFSYMBOL,
@@ -291,20 +291,20 @@ void ml_table_allocator_setup(void) {
 
     class_addmethod(ml_table_allocator_class, 
         (t_method)ml_table_allocator_set_tempo,
-        gensym("set_tempo"),
+        gensym(CMD_SET_TEMPO),
         A_DEFFLOAT, 0);
 
     class_addmethod(ml_table_allocator_class, 
         (t_method)ml_table_allocator_set_beat_note_length,
-        gensym("set_beat_note"),
+        gensym(CMD_SET_BEAT_NOTE_LENGTH),
         A_DEFSYMBOL,
         A_DEFFLOAT, 0);
 
     class_addmethod(ml_table_allocator_class,
         (t_method)ml_table_allocator_new_beat,
-        gensym("new_beat"), 0);
+        gensym(CMD_NEW_BEAT), 0);
 
     class_addmethod(ml_table_allocator_class,
         (t_method)ml_table_allocator_set_up_new_cycle,
-        gensym("set_up_new_cycle"), 0);
+        gensym(CMD_SET_UP_NEW_CYCLE), 0);
 }

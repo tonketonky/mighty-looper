@@ -63,27 +63,27 @@ void table_allocator_set_tempo(t_ml_click *x, t_int tempo) {
 
     SETFLOAT(x->cmd_args, tempo);
 
-    outlet_anything(x->cmd_out, gensym("set_tempo"), 1, x->cmd_args);
+    outlet_anything(x->cmd_out, gensym(CMD_SET_TEMPO), 1, x->cmd_args);
 }
 
 void new_bar(t_ml_click *x) {
-    outlet_symbol(x->cmd_dest_out, gensym("new_bar"));
-    outlet_anything(x->cmd_out, gensym("new_bar"), 0, 0);
+    outlet_symbol(x->cmd_dest_out, gensym(CMD_NEW_BAR));
+    outlet_anything(x->cmd_out, gensym(CMD_NEW_BAR), 0, 0);
 }
 
 void new_beat(t_ml_click *x) {
-    outlet_symbol(x->cmd_dest_out, gensym("new_beat"));
-    outlet_anything(x->cmd_out, gensym("new_beat"), 0, 0);
+    outlet_symbol(x->cmd_dest_out, gensym(CMD_NEW_BEAT));
+    outlet_anything(x->cmd_out, gensym(CMD_NEW_BEAT), 0, 0);
 }
 
 void set_up_new_cycle(t_ml_click *x) {
-    outlet_symbol(x->cmd_dest_out, gensym("set_up_new_cycle"));
-    outlet_anything(x->cmd_out, gensym("set_up_new_cycle"), 0, 0);
+    outlet_symbol(x->cmd_dest_out, gensym(CMD_SET_UP_NEW_CYCLE));
+    outlet_anything(x->cmd_out, gensym(CMD_SET_UP_NEW_CYCLE), 0, 0);
 }
 
 void new_cycle(t_ml_click *x) {
-    outlet_symbol(x->cmd_dest_out, gensym("new_cycle"));
-    outlet_anything(x->cmd_out, gensym("new_cycle"), 0, 0);
+    outlet_symbol(x->cmd_dest_out, gensym(CMD_NEW_CYCLE));
+    outlet_anything(x->cmd_out, gensym(CMD_NEW_CYCLE), 0, 0);
 }
 
 /********************************************************************
@@ -261,32 +261,32 @@ void ml_click_setup(void) {
 
     class_addmethod(ml_click_class, 
         (t_method)ml_click_switch,
-        gensym("switch"),
+        gensym(CMD_SWITCH),
         A_DEFFLOAT, 0);
 
     class_addmethod(ml_click_class,
         (t_method)ml_click_set_tempo,
-        gensym("set_tempo"),
+        gensym(CMD_SET_TEMPO),
         A_DEFFLOAT, 0);
 
     class_addmethod(ml_click_class,
         (t_method)ml_click_set_time_signature,
-        gensym("set_time_signature"),
+        gensym(CMD_SET_TIME_SIGNATURE),
         A_DEFSYMBOL,
         A_DEFFLOAT,
         A_DEFFLOAT, 0);
 
     class_addmethod(ml_click_class,
         (t_method)ml_click_start_counting_beats,
-        gensym("start_counting_beats"),
+        gensym(CMD_START_COUNTING_BEATS),
         A_GIMME, 0);
 
     class_addmethod(ml_click_class,
         (t_method)ml_click_stop_counting_beats,
-        gensym("stop_counting_beats"), 0);
+        gensym(CMD_STOP_COUNTING_BEATS), 0);
 
     class_addmethod(ml_click_class,
         (t_method)ml_click_reset,
-        gensym("reset"),
+        gensym(CMD_RESET),
         A_GIMME, 0);
 }

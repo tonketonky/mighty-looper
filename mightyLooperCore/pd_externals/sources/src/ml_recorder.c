@@ -60,7 +60,7 @@ void flag_track(t_ml_recorder *x, t_symbol *phrase, t_symbol *channel, t_symbol 
 void notify_about_started_recording(t_ml_recorder *x) {
     SETSYMBOL(x->cmd_args, x->recorded_channel);
     SETSYMBOL(x->cmd_args+1, x->recorded_track);
-    t_symbol *cmd = gensym("recording_started");
+    t_symbol *cmd = gensym(CMD_RECORDING_STARTED);
 
     // notify track manager
     outlet_symbol(x->cmd_dest_out, gensym("track_manager"));
@@ -74,7 +74,7 @@ void notify_about_started_recording(t_ml_recorder *x) {
 void notify_about_stopped_recording(t_ml_recorder *x) {
     SETSYMBOL(x->cmd_args, x->recorded_channel);
     SETSYMBOL(x->cmd_args+1, x->recorded_track);
-    t_symbol *cmd = gensym("recording_stopped");
+    t_symbol *cmd = gensym(CMD_RECORDING_STOPPED);
 
     // notify message handler
     outlet_symbol(x->cmd_dest_out, gensym("message_handler"));
@@ -95,17 +95,17 @@ void start_recording(t_ml_recorder *x) {
         SETFLOAT(x->cmd_args+3, x->flagged_layer);
         SETSYMBOL(x->cmd_args+4, x->flagged_version);
 
-        outlet_anything(x->cmd_out, gensym("add_table"), 5, x->cmd_args);
+        outlet_anything(x->cmd_out, gensym(CMD_ADD_TABLE), 5, x->cmd_args);
 
         // start allocation with flagged allocation method
         SETFLOAT(x->cmd_args, x->flagged_alloc_method);
-        outlet_anything(x->cmd_out, gensym("start_allocation"), 1, x->cmd_args);
+        outlet_anything(x->cmd_out, gensym(CMD_START_ALLOCATION), 1, x->cmd_args);
 
         if(x->flagged_alloc_method == FREE_LENGTH) {
             // in case of free-length allocation method start counting beats by click
             outlet_symbol(x->cmd_dest_out, gensym("click"));
             SETSYMBOL(x->cmd_args, x->flagged_phrase);
-            outlet_anything(x->cmd_out, gensym("start_counting_beats"), 1, x->cmd_args);
+            outlet_anything(x->cmd_out, gensym(CMD_START_COUNTING_BEATS), 1, x->cmd_args);
         }
     }
 
@@ -182,10 +182,10 @@ void ml_recorder_stop_recording(t_ml_recorder *x, t_symbol *channel, t_symbol *t
             // recording will stop at next beat (set_up_new_cycle will be generated), the recording status will change and notification will be sent then
             // now flag allocation to stop at the end of the cycle (set_up_new_cycle signal)
             outlet_symbol(x->cmd_dest_out, gensym("table_allocator"));
-            outlet_anything(x->cmd_out, gensym("flag_stop_allocation"), 0, 0);
+            outlet_anything(x->cmd_out, gensym(CMD_FLAG_STOP_ALLOCATION), 0, 0);
             // stop counting beats by click
             outlet_symbol(x->cmd_dest_out, gensym("click"));
-            outlet_anything(x->cmd_out, gensym("stop_counting_beats"), 0, 0);
+            outlet_anything(x->cmd_out, gensym(CMD_STOP_COUNTING_BEATS), 0, 0);
         }   else {
             // recording stops now, change recording status and send notification
             x->is_recording = 0;
@@ -268,24 +268,24 @@ void ml_recorder_setup(void) {
 
     class_addmethod(ml_recorder_class,
         (t_method)ml_recorder_flag_recording,
-        gensym("flag_recording"),
+        gensym(CMD_REC_FLAG),
         A_GIMME, 0);
 
     class_addmethod(ml_recorder_class,
         (t_method)ml_recorder_stop_recording,
-        gensym("stop_recording"),
+        gensym(CMD_REC_STOP),
         A_DEFSYMBOL,
         A_DEFSYMBOL, 0);
 
     class_addmethod(ml_recorder_class,
         (t_method)ml_recorder_set_up_new_cycle,
-        gensym("set_up_new_cycle"), 0);
+        gensym(CMD_SET_UP_NEW_CYCLE), 0);
 
     class_addmethod(ml_recorder_class,
         (t_method)ml_recorder_new_cycle,
-        gensym("new_cycle"), 0);
+        gensym(CMD_NEW_CYCLE), 0);
 
     class_addmethod(ml_recorder_class,
         (t_method)ml_recorder_new_bar,
-        gensym("new_bar"), 0);
+        gensym(CMD_NEW_BAR), 0);
 }

@@ -1,8 +1,9 @@
 #include "m_pd.h"
+#include "helpers_and_types.h"
 #include "search.h"
+#include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "stdio.h"
 
 /* data structs and vars for map implementation - begin */
 typedef struct {
@@ -43,18 +44,19 @@ void init_cmd_dest_map(void) {
     cmd_dest_map_root = 0;
     cmd_dest_map_find = malloc(sizeof(cmd_dest_map));
 
-    add_cmd_dest_pair("flag_recording", "track_manager");
-    add_cmd_dest_pair("stop_recording", "recorder");
-    //add_cmd_dest_pair("flag_recording_both_phrases", "track_manager");
-    //add_cmd_dest_pair("cancel_recording", "track_manager");
-    add_cmd_dest_pair("flag_switch_looping", "player");
-    //add_cmd_dest_pair("mute_track", "player");
-    add_cmd_dest_pair("flag_swap_versions", "track_manager");
-    //add_cmd_dest_pair("flag_channel_switch_looping", "player");   
-    //add_cmd_dest_pair("mute_channel", "player");
+    add_cmd_dest_pair(CMD_REC_FLAG, DEST_TRACK_MANAGER);
+    add_cmd_dest_pair(CMD_REC_STOP, DEST_RECORDER);
+    //add_cmd_dest_pair(CMD_REC_FLAG_BOTH_PHRASES, DEST_TRACK_MANAGER);
+    //add_cmd_dest_pair(CMD_REC_CANCEL, DEST_TRACK_MANAGER);
+    add_cmd_dest_pair(CMD_TRACK_FLAG_SWITCH_LOOPING, DEST_PLAYER);
+    //add_cmd_dest_pair(CMD_TRACK_SWITCH_MUTE, DEST_PLAYER);
+    add_cmd_dest_pair(CMD_TRACK_FLAG_SWAP_VERSIONS, DEST_TRACK_MANAGER);
+    //add_cmd_dest_pair(CMD_CHANNEL_FLAG_SWITCH_LOOPING, DEST_PLAYER);
+    //add_cmd_dest_pair(CMD_CHANNEL_SWITCH_MUTE, DEST_PLAYER);
 
-    add_cmd_dest_pair("set_tempo", "click");
-    add_cmd_dest_pair("set_time_signature", "click");
+    add_cmd_dest_pair(CMD_SET_TEMPO, DEST_CLICK);
+    add_cmd_dest_pair(CMD_SET_TIME_SIGNATURE, DEST_CLICK);
+
 }
 
 /**

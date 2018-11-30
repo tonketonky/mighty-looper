@@ -183,23 +183,23 @@ void ml_player_setup(void) {
 
     class_addmethod(ml_player_class, 
         (t_method)ml_player_flag_switch_looping,
-        gensym("flag_switch_looping"),
+        gensym(CMD_TRACK_FLAG_SWITCH_LOOPING),
         A_DEFSYMBOL,
         A_DEFSYMBOL, 0);
 
     class_addmethod(ml_player_class, 
         (t_method)ml_player_set_looping,
-        gensym("set_looping"),
+        gensym(CMD_TRACK_SET_LOOPING),
         A_DEFSYMBOL,
         A_DEFSYMBOL,
         A_DEFFLOAT, 0);
 
     class_addmethod(ml_player_class, 
         (t_method)ml_player_set_current_phrase,
-        gensym("set_curr_phrase"),
+        gensym(CMD_SET_CURRENT_PHRASE),
         A_DEFSYMBOL, 0);
 
     class_addmethod(ml_player_class, 
         (t_method)ml_player_set_up_new_cycle,
-        gensym("set_up_new_cycle"), 0);
+        gensym(CMD_SET_UP_NEW_CYCLE), 0);
 }

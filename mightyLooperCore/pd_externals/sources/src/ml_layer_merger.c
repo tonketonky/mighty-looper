@@ -146,7 +146,7 @@ void ml_layer_merger_set_up_new_cycle(t_ml_layer_merger *x) {
         SETFLOAT(x->cmd_args+3, 1);
         SETSYMBOL(x->cmd_args+4, x->flagged_version);
 
-        outlet_anything(x->cmd_out, gensym("add_table"), 5, x->cmd_args);
+        outlet_anything(x->cmd_out, gensym(CMD_ADD_TABLE), 5, x->cmd_args);
     }
 }
 
@@ -196,14 +196,14 @@ void ml_layer_merger_setup(void) {
 
     class_addmethod(ml_layer_merger_class, 
         (t_method)ml_layer_merger_flag_merging,
-        gensym("flag_merging"),
+        gensym(CMD_FLAG_MERGING),
         A_GIMME, 0);
 
     class_addmethod(ml_layer_merger_class, 
         (t_method)ml_layer_merger_set_up_new_cycle,
-        gensym("set_up_new_cycle"), 0);
+        gensym(CMD_SET_UP_NEW_CYCLE), 0);
 
     class_addmethod(ml_layer_merger_class, 
         (t_method)ml_layer_merger_new_cycle,
-        gensym("new_cycle"), 0);
+        gensym(CMD_NEW_CYCLE), 0);
 }
