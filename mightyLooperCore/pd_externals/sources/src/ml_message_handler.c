@@ -57,13 +57,13 @@ t_int *get_is_recording_marker(t_ml_message_handler *x, t_symbol *channel, t_sym
  ********************************************************************/
 
 char *event_to_command(t_ml_message_handler *x, char *event_code) {
-    if(strcmp(event_code, EVT_REC_TRACK_BUTTON_SP) != 0) {
+    if(strcmp(event_code, EVT_REC_TRACK_BUTTON_SP) == 0) {
         // interpretation of events from recording track button depends on whether given track is currently being recorded
         // based on that add "_r=1" or "_r=0" suffix to event code and get command for it
         int ch_id = get_id_for_symb(atom_gensym(&x->cmd_args[0]));
         int t_id = get_id_for_symb(atom_gensym(&x->cmd_args[1]));
         char *rec_specific_event_code = malloc(sizeof(event_code) + 4);
-        sprintf(rec_specific_event_code, "%s_r=%li", event_code, x->is_recording_markers[ch_id][t_id]);
+        sprintf(rec_specific_event_code, "%s_r=%lu", event_code, x->is_recording_markers[ch_id][t_id]);
         return get_cmd_for_evt(rec_specific_event_code);
         free(rec_specific_event_code);
     } else {
@@ -103,10 +103,10 @@ void ml_message_handler_process_input(t_ml_message_handler *x, t_floatarg receiv
                     // currently processed literal is argument, add it to atom list x->cmd_args
                     if(x->buf[0] == '#') {
                         // numeric argument
-                        SETFLOAT(x->cmd_args + x->num_of_literals_processed - 1, atoi(x->buf+1));
+                        SETFLOAT(x->cmd_args + x->num_of_literals_processed - 2, atoi(x->buf+1));
                     } else if(x->buf[0] == '$') {
                         // string argument
-                        SETSYMBOL(x->cmd_args + x->num_of_literals_processed - 1, gensym(x->buf+1));
+                        SETSYMBOL(x->cmd_args + x->num_of_literals_processed - 2, gensym(x->buf+1));
                     }
                 }
                 // increment literal counter
@@ -117,7 +117,7 @@ void ml_message_handler_process_input(t_ml_message_handler *x, t_floatarg receiv
                 char *cmd;
                 char *dest;
 
-                if(strcmp(x->msg_category, CAT_EVT) != 0) {
+                if(strcmp(x->msg_category, CAT_EVT) == 0) {
                     // message category is EVENT, get command for it and store it to cmd
                     cmd = event_to_command(x, x->msg_code);
                 } else {
@@ -130,12 +130,14 @@ void ml_message_handler_process_input(t_ml_message_handler *x, t_floatarg receiv
                     dest = get_dest_for_cmd(cmd);
                 }
 
+                post(cmd);
                 // check if dest isn't null due to cmd being null
                 if(dest != NULL) {
+                    post(dest);
                     // output command along with arguments to destination
                     t_symbol *dest = gensym(get_dest_for_cmd(cmd));
                     outlet_symbol(x->cmd_dest_out, dest);
-                    outlet_anything(x->cmd_out, gensym(cmd), x->num_of_literals_processed - 1, x->cmd_args);
+                    outlet_anything(x->cmd_out, gensym(cmd), x->num_of_literals_processed - 2, x->cmd_args);
                 }
                 // reset variables for next processing
                 x->num_of_literals_processed = 0;
