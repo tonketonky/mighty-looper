@@ -1,6 +1,7 @@
 #include "m_pd.h"
 #include "symb_id_map.h"
 #include "helpers_and_types.h"
+#include "stdbool.h"
 #include "stdlib.h"
 
 // pointer to ml_recorder class
@@ -69,6 +70,8 @@ void notify_about_started_recording(t_ml_recorder *x) {
     // notify message handler
     outlet_symbol(x->cmd_dest_out, gensym("message_handler"));
     outlet_anything(x->cmd_out, cmd, 2, x->cmd_args);
+
+
 }
 
 void notify_about_stopped_recording(t_ml_recorder *x) {
@@ -79,6 +82,24 @@ void notify_about_stopped_recording(t_ml_recorder *x) {
     // notify message handler
     outlet_symbol(x->cmd_dest_out, gensym("message_handler"));
     outlet_anything(x->cmd_out, cmd, 2, x->cmd_args);
+}
+
+void notify_about_flagged_recording(t_ml_recorder *x, t_symbol *channel, t_symbol *track, bool is_flagged) {
+    // send command as first argument, message handler will transform it to message for gui
+    if(is_flagged) {
+        SETSYMBOL(x->cmd_args, gensym(CMD_RECORDING_FLAGGED));
+    } else {
+        SETSYMBOL(x->cmd_args, gensym(CMD_RECORDING_UNFLAGGED));
+    }
+    SETSYMBOL(x->cmd_args+1, channel);
+    SETSYMBOL(x->cmd_args+2, track);
+
+    t_symbol *cmd;
+    cmd = gensym(CMD_SEND_TO_GUI);
+
+    // notify gui
+    outlet_symbol(x->cmd_dest_out, gensym("message_handler"));
+    outlet_anything(x->cmd_out, cmd, 3, x->cmd_args);
 }
 
 void start_recording(t_ml_recorder *x) {
@@ -165,13 +186,21 @@ void ml_recorder_flag_recording(t_ml_recorder *x, t_symbol *s, int argc, t_atom 
     t_int countdown = atom_getint(argv+6);
 
     if(x->is_flagged == 0) {
+        // no track is flagged for recording, flag given track
         flag_track(x, phrase, channel, track, layer, version, alloc_method, countdown);
+        notify_about_flagged_recording(x, channel, track, true);
     } else{
+        // there already is a track flagged for recording
         if(x->flagged_phrase == phrase && x->flagged_channel == channel && x->flagged_track == track) {
+            // already flagged track is given track, unflag it
             x->is_flagged = 0;
             x->rec_countdown = -1;
+            notify_about_flagged_recording(x, channel, track, false);
         } else {
+            // already flagged track is NOT given track, flag it (previously flagged track will be unflagged)
+            notify_about_flagged_recording(x, x->flagged_channel, x->flagged_track, false);
             flag_track(x, phrase, channel, track, layer, version, alloc_method, countdown);
+            notify_about_flagged_recording(x, channel, track, true);
         }
     }
 }

@@ -147,6 +147,44 @@ void ml_message_handler_process_input(t_ml_message_handler *x, t_floatarg receiv
     }
 }
 
+void ml_message_handler_send_to_gui(t_ml_message_handler *x, t_symbol *s, int argc, t_atom *argv) {
+    char *cmd = malloc(32);
+    // initialize to empty string
+    cmd[0] = '\0';
+    char *tmp_arg = malloc(32);
+    char *tmp_arg_formatted = malloc(32);
+    for(int i = 0; i< argc; i++) {
+        if (i == 0) {
+            // first argument is a commmand for gui, start command string
+            symb_2_string(atom_getsymbol(argv+i), tmp_arg);
+            sprintf(tmp_arg_formatted, "[cmd/%s", tmp_arg);
+            strcat(cmd, tmp_arg_formatted);
+        } else {
+            // other argumets are arguments for gui, string or numeric values
+            if(atom_getsymbol(argv+i) != NULL) {
+                // argument is a string value,
+                symb_2_string(atom_getsymbol(argv+i), tmp_arg);
+                sprintf(tmp_arg_formatted, "/$%s", tmp_arg);
+                strcat(cmd, tmp_arg_formatted);
+            } else {
+                // argument is a numeric value
+                sprintf(tmp_arg_formatted, "/#%d", atom_getint(argv+i));
+            }
+        }
+    }
+    // end command string
+    strcat(cmd, "]");
+
+    // send command string to gui
+    t_symbol *dest = gensym("gui");
+    outlet_symbol(x->cmd_dest_out, dest);
+    outlet_symbol(x->cmd_out, gensym(cmd));
+    
+    free(cmd);
+    free(tmp_arg);
+    free(tmp_arg_formatted);
+}
+
 void ml_message_handler_recording_started(t_ml_message_handler *x, t_symbol *channel, t_symbol *track) {
     *get_is_recording_marker(x, channel, track) = 1;
 }
@@ -200,6 +238,11 @@ void ml_message_handler_setup(void) {
 
     class_addfloat(ml_message_handler_class,
         (t_method)ml_message_handler_process_input);
+
+    class_addmethod(ml_message_handler_class,
+        (t_method)ml_message_handler_send_to_gui,
+        gensym(CMD_SEND_TO_GUI),
+        A_GIMME, 0);
 
     class_addmethod(ml_message_handler_class,
         (t_method)ml_message_handler_recording_started,

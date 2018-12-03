@@ -1,4 +1,4 @@
-#N canvas 65 85 1855 999 10;
+#N canvas 0 93 1920 987 10;
 #N canvas 65 146 1782 934 init 0;
 #X obj 510 68 loadbang;
 #X msg 510 89 bang \; pd dsp 1 \;;
@@ -817,13 +817,13 @@
 #X msg 1098 236 flag_switch_looping ch1 t1;
 #X msg 1159 256 flag_switch_looping ch1 t2;
 #X obj 1080 294 r set_up_new_cycle;
-#X obj 383 47 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+#X obj 383 30 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
 -1;
-#X obj 727 62 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+#X obj 831 45 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
 -1;
 #X obj 383 221 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
-#X obj 727 236 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+#X obj 831 236 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
 -1 -1;
 #X obj 483 206 s \$1;
 #X obj 428 133 comport 1 9600;
@@ -865,17 +865,17 @@
 #X msg 561 332 flag_swap_versions ch2 t1;
 #X msg 556 362 flag_swap_versions ch2 t2;
 #X obj 242 160 print muo;
-#X obj 797 141 t b a;
-#X msg 797 170 10;
-#X msg 797 115 print set_tempo/\$1;
-#X msg 542 104 devicename /tmp/mlbtslave;
-#X obj 542 76 loadbang;
-#X msg 797 89 100;
-#X text 406 44 MESSAGE HANDLER;
+#X obj 577 95 t b a;
+#X msg 577 120 10;
+#X msg 646 117 devicename /tmp/mlbtslave;
+#X obj 646 89 loadbang;
+#X text 406 27 MESSAGE HANDLER;
 #X obj 404 106 r message_handler;
 #X obj 428 173 ml_message_handler;
-#X text 839 91 Example of message sent to gui;
-#X obj 542 133 comport 1 9600;
+#X obj 646 146 comport 1 9600;
+#X obj 577 49 r gui;
+#X msg 577 72 print \$1;
+#X text 550 120 EOL;
 #X connect 3 0 5 0;
 #X connect 3 1 5 1;
 #X connect 4 0 7 0;
@@ -1019,7 +1019,7 @@
 #X connect 157 0 158 0;
 #X connect 158 0 160 0;
 #X connect 159 0 160 0;
-#X connect 162 0 203 0;
+#X connect 162 0 201 0;
 #X connect 163 0 166 0;
 #X connect 164 0 141 0;
 #X connect 165 0 145 0;
@@ -1051,13 +1051,13 @@
 #X connect 192 0 3 0;
 #X connect 193 0 3 0;
 #X connect 195 0 196 0;
-#X connect 195 1 205 0;
-#X connect 196 0 205 0;
-#X connect 197 0 195 0;
-#X connect 198 0 205 0;
-#X connect 199 0 198 0;
-#X connect 200 0 197 0;
-#X connect 202 0 203 0;
-#X connect 203 0 161 0;
-#X connect 203 1 161 1;
-#X connect 205 0 203 0;
+#X connect 195 1 202 0;
+#X connect 196 0 202 0;
+#X connect 197 0 202 0;
+#X connect 198 0 197 0;
+#X connect 200 0 201 0;
+#X connect 201 0 161 0;
+#X connect 201 1 161 1;
+#X connect 202 0 201 0;
+#X connect 203 0 204 0;
+#X connect 204 0 195 0;

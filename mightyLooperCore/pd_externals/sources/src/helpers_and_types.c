@@ -21,8 +21,17 @@ t_symbol *get_opp_version(t_symbol *version) {
 void symb_2_string(t_symbol *symbol, char *string) {
     t_atom *at = malloc(sizeof(t_atom));
     SETSYMBOL(at, symbol);
-    atom_string(at, string, 5);
+    atom_string(at, string, 32);
     free(at);
+}
+
+void prepend_to_args(t_symbol *cmd, t_atom *args, int argc) {
+    for(int i = argc - 1; i >= 0; i--) {
+        // move each element 1 index up
+        args[i + 1] = args[i];
+    }
+    // set cmd as first element
+    SETSYMBOL(args, cmd);;
 }
 
 t_symbol *get_table_name_symb(t_symbol *phrase, t_symbol *channel, t_symbol *track, t_int layer, t_symbol *version) {

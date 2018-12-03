@@ -46,6 +46,9 @@
 // layer merger
 #define CMD_FLAG_MERGING "flag_merging"
 
+// message handler
+#define CMD_SEND_TO_GUI "send_to_gui"
+
 // track manager
 #define CMD_SWAP_PHRASES "swap_phrases"
 
@@ -62,12 +65,15 @@
 #define CMD_NEW_CYCLE "new_cycle"
 #define CMD_SET_UP_NEW_CYCLE "set_up_new_cycle"
 
-#define CMD_RECORDING_STARTED "recording_started"
-#define CMD_RECORDING_STOPPED "recording_stopped"
-
 #define CMD_SET_TEMPO "set_tempo"
 #define CMD_RESET "reset"
 #define CMD_SYNC "sync"
+
+// notifications
+#define CMD_RECORDING_STARTED "recording_started"
+#define CMD_RECORDING_STOPPED "recording_stopped"
+#define CMD_RECORDING_FLAGGED "recording_flagged"
+#define CMD_RECORDING_UNFLAGGED "recording_unflagged"
 
 /* command destinations */
 #define DEST_CLICK "click"
@@ -85,3 +91,4 @@ t_symbol *get_opp_phrase(t_symbol *phrase);
 t_symbol *get_opp_version(t_symbol *version);
 void symb_2_string(t_symbol *symbol, char *string);
 t_symbol *get_table_name_symb(t_symbol *phrase, t_symbol *channel, t_symbol *track, t_int layer, t_symbol *version);
+void prepend_to_args(t_symbol *cmd, t_atom *args, int argc);
