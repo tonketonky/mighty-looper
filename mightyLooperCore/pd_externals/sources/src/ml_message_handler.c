@@ -6,6 +6,18 @@
 #include "stdlib.h"
 #include "string.h"
 
+/*  Messages protocol
+    #################
+
+    Messages received sent to gui consist of command followed by slash-separated list of arguments
+    Each argument is prefixed with # for numeric values or $ for string values.
+    example: "command/#666/$hellYeah"
+
+    Messages reveived from gui or arduino consist of message category (evt/cmd), message code followed by slash-separated list of arguments, all enclosed in square brackets.
+    Each argument is prefixed with # for numeric values or $ for string values.
+    example "[evt/msg_code/#666/$hellYeah]"
+ */
+
 // pointer to ml_message_handler class
 static t_class *ml_message_handler_class;
 
