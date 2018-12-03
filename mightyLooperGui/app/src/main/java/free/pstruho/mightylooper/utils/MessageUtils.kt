@@ -5,28 +5,39 @@ import android.content.Intent
 /*  Messages protocol
     #################
 
-    Messages received from looper consist of command followed by slash-separated list of arguments
-    example: "command/arg1/arg2/arg3"
-
-    Messages consist of event code followed by slash-separated list of arguments, all enclosed in square brackets.
+    Messages consist of message category (evt/cmd), message code (command or event code) followed by slash-separated list of arguments, all enclosed in square brackets.
     Each argument is prefixed with # for numeric values or $ for string values.
-    example [event_code/#666/$hellYeah]
+    example "[evt/msg_code/#666/$hellYeah]"
  */
 
-fun buildSetTempoMessage(tempo: Int): String {
-    return "[$EVT_CD_SET_TEMPO/#$tempo]"
+fun buildMessage(command: String, args: List<Any>): String {
+    val argsStr = args.joinToString(separator = "/") { arg -> if (arg is String) "$STR_ARG_SIGN$arg" else "$NUM_ARG_SIGN$arg" }
+    return "[cmd/$command/$argsStr]"
 }
 
 fun getIntentFromMessage(msg: String): Intent? {
-    val literals = msg.split('/')
 
-    return when (literals[0]) {
-        MSG_CMD_SET_TEMPO -> {
-            val intent = Intent()
-            intent.action = ACT_SET_TEMPO
-            intent.putExtra(ACT_ARG_TEMPO, literals[1].toInt())
-            intent
+    if (msg.startsWith(START_OF_COMMAND) and msg.endsWith(END_OF_COMMAND)) {
+        // is valid message
+        val msgBody = msg.drop(START_OF_COMMAND.length).dropLast(END_OF_COMMAND.length)
+        val literals = msgBody.split('/')
+
+        val intent = Intent()
+        // set first literal as action
+        intent.action = literals[0]
+
+        // iterate over the rest of literals
+        for(i in 1 until literals.size step 1) {
+            // based on first char ($ or #) set value to argument in corespondent type
+            when (literals[i].first().toString()) {
+                STR_ARG_SIGN -> intent.putExtra("$ARG_PREFIX$i", literals[i].substring(1))
+                NUM_ARG_SIGN -> intent.putExtra("$ARG_PREFIX$i", literals[i].substring(1).toInt())
+            }
         }
-        else -> null
+        return intent
+    } else {
+        // is NOT valid message
+        return null
     }
+
 }

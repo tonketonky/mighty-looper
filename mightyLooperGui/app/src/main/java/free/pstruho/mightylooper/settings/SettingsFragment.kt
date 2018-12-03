@@ -9,9 +9,7 @@ import android.support.v7.preference.PreferenceDialogFragmentCompat
 import android.support.v7.preference.PreferenceFragmentCompat
 import free.pstruho.mightylooper.R
 import free.pstruho.mightylooper.service.LooperService
-import free.pstruho.mightylooper.utils.ACT_ARG_TEMPO
-import free.pstruho.mightylooper.utils.MSG_CMD_SET_TEMPO
-import free.pstruho.mightylooper.utils.buildSetTempoMessage
+import free.pstruho.mightylooper.utils.*
 
 class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -27,10 +25,10 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             when (action) {
-                MSG_CMD_SET_TEMPO -> {
+                ACT_SET_TEMPO -> {
                     // set 'should send' flag to false because this preference change was invoked by core
                     shouldSendValueToCore[tempoPreferenceKey] = false
-                    (findPreference(tempoPreferenceKey) as TempoPreference).update(intent.getIntExtra(ACT_ARG_TEMPO, 0))
+                    (findPreference(tempoPreferenceKey) as TempoPreference).update(intent.getIntExtra("${ARG_PREFIX}1", 0))
                 }
             }
         }
@@ -62,7 +60,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
         // register broadcast receiver
         val filter = IntentFilter()
-        filter.addAction(MSG_CMD_SET_TEMPO)
+        filter.addAction(ACT_SET_TEMPO)
         LocalBroadcastManager.getInstance(requireContext()).registerReceiver(mReceiver, filter)
     }
 
@@ -105,7 +103,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         when(key) {
-            tempoPreferenceKey -> if (shouldSendValueToCore[tempoPreferenceKey] != false) mLooperService.write(buildSetTempoMessage(sharedPreferences?.getInt(key, 0) ?: 0))
+            tempoPreferenceKey -> if (shouldSendValueToCore[tempoPreferenceKey] != false) mLooperService.write(buildMessage(CMD_SET_TEMPO, listOf(sharedPreferences?.getInt(key, 0) ?: 0)))
         }
         // if given preference has corresponding 'should send' flag set to false, reset it to true
         shouldSendValueToCore[key]?.let { if(!it) shouldSendValueToCore[key!!] = true }
