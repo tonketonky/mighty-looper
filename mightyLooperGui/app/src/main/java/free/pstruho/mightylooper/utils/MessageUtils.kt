@@ -28,7 +28,7 @@ fun getIntentFromMessage(msg: String): Intent? {
 
         // iterate over the rest of literals
         for(i in 1 until literals.size step 1) {
-            // based on first char ($ or #) set value to argument in corespondent type
+            // based on first char ($ or #) set value in corresponding type as argument with name ARG_PREFIX + position
             when (literals[i].first().toString()) {
                 STR_ARG_SIGN -> intent.putExtra("$ARG_PREFIX$i", literals[i].substring(1))
                 NUM_ARG_SIGN -> intent.putExtra("$ARG_PREFIX$i", literals[i].substring(1).toInt())
