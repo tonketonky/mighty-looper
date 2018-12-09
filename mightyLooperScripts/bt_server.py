@@ -51,7 +51,7 @@ class BtServer(threading.Thread):
                     else:
                         raise e
                 # data received, write to serial bridge
-                print('[bluetooth server] gui -> core: ' + str(data))
+                print('[bluetooth server] gui -> core: ' + data.decode("utf-8"))
                 self.serial_bridge.write(data)
             else:
                 # listen for connection
