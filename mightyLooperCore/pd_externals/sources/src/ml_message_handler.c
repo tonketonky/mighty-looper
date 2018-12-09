@@ -9,11 +9,7 @@
 /*  Messages protocol
     #################
 
-    Messages received sent to gui consist of command followed by slash-separated list of arguments
-    Each argument is prefixed with # for numeric values or $ for string values.
-    example: "command/#666/$hellYeah"
-
-    Messages reveived from gui or arduino consist of message category (evt/cmd), message code followed by slash-separated list of arguments, all enclosed in square brackets.
+    Messages consist of message category (evt/cmd), message code (command or event code) followed by slash-separated list of arguments, all enclosed in square brackets.
     Each argument is prefixed with # for numeric values or $ for string values.
     example "[evt/msg_code/#666/$hellYeah]"
  */
@@ -29,7 +25,7 @@ typedef struct _ml_message_handler {
 
     t_int       is_processing;
 
-    char        buf[32];
+    char        buf[64];
     char        *msg_code;
     char        *msg_category;
 
@@ -160,11 +156,11 @@ void ml_message_handler_process_input(t_ml_message_handler *x, t_floatarg receiv
 }
 
 void ml_message_handler_send_to_gui(t_ml_message_handler *x, t_symbol *s, int argc, t_atom *argv) {
-    char *cmd = malloc(32);
+    char *cmd = malloc(64);
     // initialize to empty string
     cmd[0] = '\0';
-    char *tmp_arg = malloc(32);
-    char *tmp_arg_formatted = malloc(32);
+    char *tmp_arg = malloc(64);
+    char *tmp_arg_formatted = malloc(64);
     for(int i = 0; i< argc; i++) {
         if (i == 0) {
             // first argument is a commmand for gui, start command string

@@ -1,6 +1,7 @@
 #include "m_pd.h"  
 #include "symb_id_map.h"
 #include "helpers_and_types.h"
+#include "stdbool.h"
 #include "stdlib.h"
 
 // pointer to ml_player class
@@ -88,6 +89,42 @@ void set_looping(t_ml_player *x, t_symbol *channel, t_symbol *track, t_int is_lo
     outlet_float(x->cmd_out, is_looping);
 }
 
+void notify_about_flagged_switch_looping(t_ml_player *x, t_symbol *channel, t_symbol *track, bool is_flagged) {
+    // send command as first argument, message handler will transform it to message for gui
+    if(is_flagged) {
+        SETSYMBOL(x->cmd_args, gensym(CMD_TRACK_SWITCH_LOOPING_FLAGGED));
+    } else {
+        SETSYMBOL(x->cmd_args, gensym(CMD_TRACK_SWITCH_LOOPING_UNFLAGGED));
+    }
+    SETSYMBOL(x->cmd_args+1, channel);
+    SETSYMBOL(x->cmd_args+2, track);
+
+    t_symbol *cmd;
+    cmd = gensym(CMD_SEND_TO_GUI);
+
+    // notify gui
+    outlet_symbol(x->cmd_dest_out, gensym("message_handler"));
+    outlet_anything(x->cmd_out, cmd, 3, x->cmd_args);
+}
+
+void notify_about_switched_looping(t_ml_player *x, t_symbol *channel, t_symbol *track, bool is_looping) {
+    // send command as first argument, message handler will transform it to message for gui
+    if(is_looping) {
+        SETSYMBOL(x->cmd_args, gensym(CMD_TRACK_LOOPING_STARTED));
+    } else {
+        SETSYMBOL(x->cmd_args, gensym(CMD_TRACK_LOOPING_STOPPED));
+    }
+    SETSYMBOL(x->cmd_args+1, channel);
+    SETSYMBOL(x->cmd_args+2, track);
+
+    t_symbol *cmd;
+    cmd = gensym(CMD_SEND_TO_GUI);
+
+    // notify gui
+    outlet_symbol(x->cmd_dest_out, gensym("message_handler"));
+    outlet_anything(x->cmd_out, cmd, 3, x->cmd_args);
+}
+
 /*******************************************************************************
  * ml_player class methods
  *******************************************************************************/
@@ -99,6 +136,7 @@ void ml_player_flag_switch_looping(t_ml_player *x, t_symbol *channel, t_symbol *
     t_int *switch_looping_flag = &x->switch_looping_flags[ch_id][t_id];
 
     *switch_looping_flag = *switch_looping_flag ^ 1;
+    notify_about_flagged_switch_looping(x, channel, track, *switch_looping_flag);
 }
 
 void ml_player_set_looping(t_ml_player *x, t_symbol *channel, t_symbol *track, t_floatarg is_looping) {
@@ -117,6 +155,7 @@ void ml_player_set_current_phrase(t_ml_player *x, t_symbol *phrase) {
 void ml_player_set_up_new_cycle(t_ml_player *x) {
     t_int p_id = get_id_for_symb(x->current_phrase);
     
+    // switch looping for all flagged tracks, notify gui
     for(t_int ch_id = 0; ch_id < 2; ch_id++) {
         for(t_int t_id = 0; t_id < 4; t_id++) {
             t_int *switch_looping_flag = &x->switch_looping_flags[ch_id][t_id];
@@ -128,6 +167,7 @@ void ml_player_set_up_new_cycle(t_ml_player *x) {
                 *track_looping_marker = *track_looping_marker ^ 1;
                 
                 set_looping(x, x->channel_symbs[ch_id], x->track_symbs[t_id], *track_looping_marker);
+                notify_about_switched_looping(x, x->channel_symbs[ch_id], x->track_symbs[t_id], *track_looping_marker);
             }
         }
     }

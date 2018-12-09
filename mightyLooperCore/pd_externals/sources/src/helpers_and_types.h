@@ -75,6 +75,11 @@
 #define CMD_RECORDING_FLAGGED "recording_flagged"
 #define CMD_RECORDING_UNFLAGGED "recording_unflagged"
 
+#define CMD_TRACK_SWITCH_LOOPING_FLAGGED "track_switch_looping_flagged"
+#define CMD_TRACK_SWITCH_LOOPING_UNFLAGGED "track_switch_looping_unflagged"
+#define CMD_TRACK_LOOPING_STARTED "track_looping_started"
+#define CMD_TRACK_LOOPING_STOPPED "track_looping_stopped"
+
 /* command destinations */
 #define DEST_CLICK "click"
 #define DEST_PLAYER "player"

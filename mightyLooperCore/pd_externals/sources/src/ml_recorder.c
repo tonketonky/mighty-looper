@@ -72,6 +72,10 @@ void notify_about_started_recording(t_ml_recorder *x) {
     outlet_anything(x->cmd_out, cmd, 2, x->cmd_args);
 
 
+    // notify gui
+    prepend_to_args(cmd, x->cmd_args, 2);
+    outlet_symbol(x->cmd_dest_out, gensym("message_handler"));
+    outlet_anything(x->cmd_out, gensym(CMD_SEND_TO_GUI), 3, x->cmd_args);
 }
 
 void notify_about_stopped_recording(t_ml_recorder *x) {
@@ -82,6 +86,11 @@ void notify_about_stopped_recording(t_ml_recorder *x) {
     // notify message handler
     outlet_symbol(x->cmd_dest_out, gensym("message_handler"));
     outlet_anything(x->cmd_out, cmd, 2, x->cmd_args);
+
+    // notify gui
+    prepend_to_args(cmd, x->cmd_args, 2);
+    outlet_symbol(x->cmd_dest_out, gensym("message_handler"));
+    outlet_anything(x->cmd_out, gensym(CMD_SEND_TO_GUI), 3, x->cmd_args);
 }
 
 void notify_about_flagged_recording(t_ml_recorder *x, t_symbol *channel, t_symbol *track, bool is_flagged) {
@@ -94,12 +103,9 @@ void notify_about_flagged_recording(t_ml_recorder *x, t_symbol *channel, t_symbo
     SETSYMBOL(x->cmd_args+1, channel);
     SETSYMBOL(x->cmd_args+2, track);
 
-    t_symbol *cmd;
-    cmd = gensym(CMD_SEND_TO_GUI);
-
     // notify gui
     outlet_symbol(x->cmd_dest_out, gensym("message_handler"));
-    outlet_anything(x->cmd_out, cmd, 3, x->cmd_args);
+    outlet_anything(x->cmd_out, gensym(CMD_SEND_TO_GUI), 3, x->cmd_args);
 }
 
 void start_recording(t_ml_recorder *x) {
