@@ -22,6 +22,7 @@ MSG_PSEUDO_TERMINALS_DESTROYED = 'pseudo terminals destroyed'
 MSG_RUNNING = 'running...'
 MSG_SERVER_SOCKET_CLOSED = 'server socket closed'
 MSG_SIGINT_RECEIVED = 'SIGINT received'
+MSG_SIGTERM_RECEIVED = 'SIGTERM received'
 MSG_SLAVE_CLOSED = 'slave closed'
 MSG_STOPPED = 'stopped'
 
