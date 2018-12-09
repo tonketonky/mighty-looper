@@ -12,10 +12,7 @@ import android.support.v4.content.LocalBroadcastManager
 import android.bluetooth.BluetoothSocket
 import android.os.*
 import android.util.Log
-import free.pstruho.mightylooper.utils.TAG_LOOPER_SERVICE
-import free.pstruho.mightylooper.utils.ACT_UPDATE_LOOPER_LIST
-import free.pstruho.mightylooper.utils.SPP_UUID
-import free.pstruho.mightylooper.utils.getIntentFromMessage
+import free.pstruho.mightylooper.utils.*
 import java.io.*
 import java.lang.IllegalArgumentException
 
@@ -137,9 +134,9 @@ class LooperService : Service() {
 
             try {
                 tmp = mDevice.createRfcommSocketToServiceRecord(UUID.fromString(SPP_UUID))
-                Log.i(TAG_LOOPER_SERVICE, "Socket created")
+                Log.i(TAG_LOOPER_SERVICE, LOG_SOCKET_CREATED)
             } catch (e: IOException) {
-                Log.e(TAG_LOOPER_SERVICE, "Socket's create() method failed", e)
+                Log.e(TAG_LOOPER_SERVICE, LOG_CREATING_SOCKET_FAILED, e)
             }
 
             mSocket = tmp
@@ -151,16 +148,16 @@ class LooperService : Service() {
 
             try {
                 mSocket!!.connect()
-                Log.i(TAG_LOOPER_SERVICE, "Socket connected")
+                Log.i(TAG_LOOPER_SERVICE, LOG_SOCKET_CONNECTED)
                 mConnected = true
             } catch (connectException: IOException) {
-                Log.e(TAG_LOOPER_SERVICE, "Could not connect to device, closing socket", connectException)
+                Log.e(TAG_LOOPER_SERVICE, LOG_COULD_NOT_CONNECT_TO_DEVICE, connectException)
                 try {
                     mSocket!!.close()
                     connectException.printStackTrace()
-                    Log.i(TAG_LOOPER_SERVICE, "Socket closed due to exception")
+                    Log.e(TAG_LOOPER_SERVICE, LOG_SOCKET_CLOSED_DUE_TO_EXCEPTION)
                 } catch (closeException: IOException) {
-                    Log.e(TAG_LOOPER_SERVICE, "Could not close the client socket", closeException)
+                    Log.e(TAG_LOOPER_SERVICE, LOG_COULD_NOT_CLOSE_CLIENT_SOCKET, closeException)
                 }
 
                 return
@@ -171,9 +168,9 @@ class LooperService : Service() {
         fun cancel() {
             try {
                 mSocket!!.close()
-                Log.i(TAG_LOOPER_SERVICE, "Socket closed due to cancel")
+                Log.i(TAG_LOOPER_SERVICE, LOG_SOCKET_CLOSED_ON_THREAD_CANCEL)
             } catch (e: IOException) {
-                Log.e(TAG_LOOPER_SERVICE, "Could not close the client socket", e)
+                Log.e(TAG_LOOPER_SERVICE, LOG_COULD_NOT_CLOSE_CLIENT_SOCKET, e)
             }
         }
     }
@@ -189,13 +186,13 @@ class LooperService : Service() {
             try {
                 tmpIn = mSocket.inputStream
             } catch (e: IOException) {
-                Log.e(TAG_LOOPER_SERVICE, "Error occurred when creating input stream", e)
+                Log.e(TAG_LOOPER_SERVICE, LOG_CREATING_IN_STREAM_ERROR, e)
             }
 
             try {
                 tmpOut = mSocket.outputStream
             } catch (e: IOException) {
-                Log.e(TAG_LOOPER_SERVICE, "Error occurred when creating output stream", e)
+                Log.e(TAG_LOOPER_SERVICE, LOG_CREATING_OUT_STREAM_ERROR, e)
             }
 
             mInStream = tmpIn
@@ -206,10 +203,10 @@ class LooperService : Service() {
         val bufferedReader = mInStream!!.bufferedReader()
 
         override fun run() {
-            val mBuffer = CharArray(128)
+            val mBuffer = CharArray(512)
             var numBytes: Int
             //var bytes = ByteArray(10)
-            var msg: String
+            var data: String
 
             while (mConnected) {
                 try {
@@ -221,9 +218,12 @@ class LooperService : Service() {
                     // Since BufferedReader is non-blocking read() method needs to be invoked in a loop
                     if(bufferedReader.ready()) {
                         numBytes = bufferedReader.read(mBuffer)
-                        msg = String(mBuffer, 0, numBytes)
-                        Log.d(TAG_LOOPER_SERVICE, "Received message: $msg")
-                        getIntentFromMessage(msg)?.let { mLocalBroadcastManager.sendBroadcast(it) }
+                        data = String(mBuffer, 0, numBytes)
+                        // get all messages (format: [cmd/<<msgBody>>] ) contained in received data and send broadcast for each
+                        MESSAGE_FORMAT_REGEX.toRegex().findAll(data).iterator().forEach { match ->
+                            Log.d(TAG_LOOPER_SERVICE, LOG_RECEIVED_MESSAGE + match.value)
+                            getIntentFromMessage(match.value)?.let { mLocalBroadcastManager.sendBroadcast(it) }
+                        }
                     }
                     // for performance reasons the thread is paused in each iteration for 100ms
                     Thread.sleep(100)
@@ -231,7 +231,7 @@ class LooperService : Service() {
                     when(e) {
                         // TODO: investigate IllegalArgumentException here
                         is IOException, is IllegalArgumentException -> {
-                            Log.d(TAG_LOOPER_SERVICE, "Input stream was disconnected", e)
+                            Log.i(TAG_LOOPER_SERVICE, LOG_INPUT_STREAM_DISCONNECTED, e)
                             mConnected = false
                         }
                         else -> throw e
@@ -244,7 +244,7 @@ class LooperService : Service() {
             try {
                 mOutStream!!.write(bytes)
             } catch (e: IOException) {
-                Log.e(TAG_LOOPER_SERVICE, "Error occurred when sending data", e)
+                Log.e(TAG_LOOPER_SERVICE, LOG_SENDING_DATA_ERROR, e)
             }
 
         }
@@ -253,7 +253,7 @@ class LooperService : Service() {
             try {
                 mSocket.close()
             } catch (e: IOException) {
-                Log.e(TAG_LOOPER_SERVICE, "Could not close the connect socket", e)
+                Log.e(TAG_LOOPER_SERVICE, LOG_CLOSING_SOCKET_ERROR, e)
             }
 
         }

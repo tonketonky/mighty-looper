@@ -11,18 +11,26 @@ import android.view.ViewGroup
 import android.widget.GridLayout
 import free.pstruho.mightylooper.R
 import free.pstruho.mightylooper.service.LooperService
-import free.pstruho.mightylooper.utils.buildMessage
+import free.pstruho.mightylooper.utils.*
 
 class ControlsFragment : Fragment() {
 
     private lateinit var mLooperService: LooperService
+    private val mTrackControlsList = mutableListOf<TrackControls>()
     private var mBound = false
 
     private val mReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             when (action) {
-
+                CMD_RECORDING_FLAGGED -> getTrackControls(intent)?.let { it.handleFlaggedForRecording() }
+                CMD_RECORDING_UNFLAGGED -> getTrackControls(intent)?.let { it.handleUnflaggedForRecording() }
+                CMD_RECORDING_STARTED -> getTrackControls(intent)?.let { it.handleStartedRecording() }
+                CMD_RECORDING_STOPPED -> getTrackControls(intent)?.let { it.handleStoppedRecording() }
+                CMD_TRACK_SWITCH_LOOPING_FLAGGED -> getTrackControls(intent)?.let { it.handleFlaggedForLooping() }
+                CMD_TRACK_SWITCH_LOOPING_UNFLAGGED -> getTrackControls(intent)?.let { it.handleUnflaggedForLooping() }
+                CMD_TRACK_LOOPING_STARTED -> getTrackControls(intent)?.let { it.handleStartedLooping() }
+                CMD_TRACK_LOOPING_STOPPED -> getTrackControls(intent)?.let { it.handleStoppedLooping() }
             }
         }
     }
@@ -40,8 +48,14 @@ class ControlsFragment : Fragment() {
         }
     }
 
-    private val mHandleCommand = fun(command: String, args: List<String>) {
+    private val mWriteToLooperService = fun(command: String, args: List<String>) {
         mLooperService.write(buildMessage(command, args))
+    }
+
+    private fun getTrackControls(intent: Intent): TrackControls? {
+        return mTrackControlsList.find { item ->
+            item.mChannel == intent.getStringExtra("${INTENT_ARG_PREFIX}1")
+                    && item.mTrack == intent.getStringExtra("${INTENT_ARG_PREFIX}2") }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,7 +67,14 @@ class ControlsFragment : Fragment() {
 
         // register broadcast receiver
         val filter = IntentFilter()
-        //filter.addAction(ACT_SET_TEMPO)
+        filter.addAction(CMD_RECORDING_FLAGGED)
+        filter.addAction(CMD_RECORDING_UNFLAGGED)
+        filter.addAction(CMD_RECORDING_STARTED)
+        filter.addAction(CMD_RECORDING_STOPPED)
+        filter.addAction(CMD_TRACK_SWITCH_LOOPING_FLAGGED)
+        filter.addAction(CMD_TRACK_SWITCH_LOOPING_UNFLAGGED)
+        filter.addAction(CMD_TRACK_LOOPING_STARTED)
+        filter.addAction(CMD_TRACK_LOOPING_STOPPED)
         LocalBroadcastManager.getInstance(requireContext()).registerReceiver(mReceiver, filter)
     }
 
@@ -62,23 +83,17 @@ class ControlsFragment : Fragment() {
 
         val controlsLayout =  inflater.inflate(R.layout.fragment_controls, container, false) as GridLayout
 
-        val controlsT1Ch1 = controlsLayout.findViewById<TrackControls>(R.id.controlsT1Ch1)
-        controlsT1Ch1.mHandleCommand = mHandleCommand
-        val controlsT2Ch1 = controlsLayout.findViewById<TrackControls>(R.id.controlsT2Ch1)
-        controlsT2Ch1.mHandleCommand = mHandleCommand
-        val controlsT3Ch1 = controlsLayout.findViewById<TrackControls>(R.id.controlsT3Ch1)
-        controlsT3Ch1.mHandleCommand = mHandleCommand
-        val controlsT4Ch1 = controlsLayout.findViewById<TrackControls>(R.id.controlsT4Ch1)
-        controlsT4Ch1.mHandleCommand = mHandleCommand
+        mTrackControlsList.add(controlsLayout.findViewById(R.id.controlsT1Ch1))
+        mTrackControlsList.add(controlsLayout.findViewById(R.id.controlsT2Ch1))
+        mTrackControlsList.add(controlsLayout.findViewById(R.id.controlsT3Ch1))
+        mTrackControlsList.add(controlsLayout.findViewById(R.id.controlsT4Ch1))
 
-        val controlsT1Ch2 = controlsLayout.findViewById<TrackControls>(R.id.controlsT1Ch2)
-        controlsT1Ch2.mHandleCommand = mHandleCommand
-        val controlsT2Ch2 = controlsLayout.findViewById<TrackControls>(R.id.controlsT2Ch2)
-        controlsT2Ch2.mHandleCommand = mHandleCommand
-        val controlsT3Ch2 = controlsLayout.findViewById<TrackControls>(R.id.controlsT3Ch2)
-        controlsT3Ch2.mHandleCommand = mHandleCommand
-        val controlsT4Ch2 = controlsLayout.findViewById<TrackControls>(R.id.controlsT4Ch2)
-        controlsT4Ch2.mHandleCommand = mHandleCommand
+        mTrackControlsList.add(controlsLayout.findViewById(R.id.controlsT1Ch2))
+        mTrackControlsList.add(controlsLayout.findViewById(R.id.controlsT2Ch2))
+        mTrackControlsList.add(controlsLayout.findViewById(R.id.controlsT3Ch2))
+        mTrackControlsList.add(controlsLayout.findViewById(R.id.controlsT4Ch2))
+
+        mTrackControlsList.forEach { trackControls -> trackControls.mSendToLooperService = mWriteToLooperService }
 
         return controlsLayout
     }

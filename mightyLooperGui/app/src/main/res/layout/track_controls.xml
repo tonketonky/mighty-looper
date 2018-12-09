@@ -23,19 +23,22 @@
 
     <Button
         android:id="@+id/loopButton"
-        android:layout_width="63dp"
+        android:layout_width="74dp"
         android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/green_flag_icon"
         android:layout_marginStart="3dp"
         android:layout_marginLeft="3dp"
         android:layout_marginTop="3dp"
         android:layout_marginEnd="3dp"
         android:layout_marginRight="3dp"
         android:layout_marginBottom="3dp"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
         android:text="loop" />
 
     <Button
         android:id="@+id/muteButton"
-        android:layout_width="63dp"
+        android:layout_width="74dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="3dp"
         android:layout_marginLeft="3dp"
@@ -47,14 +50,17 @@
 
     <Button
         android:id="@+id/recButton"
-        android:layout_width="63dp"
+        android:layout_width="74dp"
         android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/red_flag_icon"
         android:layout_marginStart="3dp"
         android:layout_marginLeft="3dp"
         android:layout_marginTop="3dp"
         android:layout_marginEnd="3dp"
         android:layout_marginRight="3dp"
         android:layout_marginBottom="3dp"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
         android:text="rec" />
 
 

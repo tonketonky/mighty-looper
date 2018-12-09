@@ -25,10 +25,10 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             when (action) {
-                ACT_SET_TEMPO -> {
+                CMD_SET_TEMPO -> {
                     // set 'should send' flag to false because this preference change was invoked by core
                     shouldSendValueToCore[tempoPreferenceKey] = false
-                    (findPreference(tempoPreferenceKey) as TempoPreference).update(intent.getIntExtra("${ARG_PREFIX}1", 0))
+                    (findPreference(tempoPreferenceKey) as TempoPreference).update(intent.getIntExtra("${INTENT_ARG_PREFIX}1", 0))
                 }
             }
         }
@@ -60,7 +60,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
         // register broadcast receiver
         val filter = IntentFilter()
-        filter.addAction(ACT_SET_TEMPO)
+        filter.addAction(CMD_SET_TEMPO)
         LocalBroadcastManager.getInstance(requireContext()).registerReceiver(mReceiver, filter)
     }
 
