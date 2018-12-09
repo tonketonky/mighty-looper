@@ -15,9 +15,11 @@ def main():
     def signal_handler(sig, frame):
         if sig == 2:
             log(TAG_ML, MSG_SIGINT_RECEIVED)
-        else:
+        elif sig == 15:
             log(TAG_ML, MSG_SIGTERM_RECEIVED)
-        os.killpg(os.getpgid(pd_process.pid), signal.SIGINT)
+        else:
+            log(TAG_ML, MSG_RECEIVED_SIGNAL + sig)
+     #   os.killpg(os.getpgid(pd_process.pid), signal.SIGINT)
         log(TAG_LOOPER_CORE, MSG_STOPPED)
         bt_server.join()
         global shutdown_flag
@@ -35,7 +37,7 @@ def main():
 
     # start looper core
     looper_home = os.getenv(LOOPER_HOME_ENV_VAR)
-    pd_process = subprocess.Popen('sudo pd -nogui -path /home/pi/mighty_looper/puredata/pd_externals/ -lib mighty_looper_lib -audiobuf 5 /home/pi/mighty_looper/puredata/mighty_looper.pd 2>>{}/log/mighty-looper-core-console.log'.format(looper_home, looper_home), shell=True, preexec_fn=os.setpgrp)
+    #pd_process = subprocess.Popen('sudo pd -nogui -path /home/pi/mighty_looper/puredata/pd_externals/ -lib mighty_looper_lib -audiobuf 5 /home/pi/mighty_looper/puredata/mighty_looper.pd 2>>{}/log/mighty-looper-core-console.log'.format(looper_home, looper_home), shell=True, preexec_fn=os.setpgrp)
     log(TAG_LOOPER_CORE, MSG_RUNNING)
 
     # register handler for interrupt signal
