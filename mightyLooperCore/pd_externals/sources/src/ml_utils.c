@@ -1,17 +1,13 @@
 #include "m_pd.h" 
 #include "stdlib.h"
-
-#define PHRASE1 gensym("p1")
-#define PHRASE2 gensym("p2")
-#define VERSION_A gensym("a")
-#define VERSION_B gensym("b")
+#include "ml_definitions.h"
 
 /*****************************************************************
  * Helper functions
  *****************************************************************/
 
 t_symbol *get_opp_phrase(t_symbol *phrase) {
-    return phrase == PHRASE1 ? PHRASE2 : PHRASE1;
+    return phrase == PHRASE_1 ? PHRASE_2 : PHRASE_1;
 }
 
 t_symbol *get_opp_version(t_symbol *version) {

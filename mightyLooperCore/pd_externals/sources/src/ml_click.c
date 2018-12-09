@@ -1,6 +1,6 @@
 #include "m_pd.h"  
-#include "symb_id_map.h"
-#include "helpers_and_types.h"
+#include "ml_definitions.h"
+#include "ml_symb_id_map.h"
 #include "stdlib.h"
 
 // pointer to ml_click class

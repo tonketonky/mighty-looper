@@ -1,6 +1,7 @@
 #include "m_pd.h"  
-#include "symb_id_map.h"
-#include "helpers_and_types.h"
+#include "ml_definitions.h"
+#include "ml_symb_id_map.h"
+#include "ml_utils.h"
 #include "stdlib.h"
 
 // pointer to ml_track_manager class
