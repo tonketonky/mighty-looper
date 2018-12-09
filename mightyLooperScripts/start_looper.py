@@ -3,6 +3,7 @@ import signal
 import subprocess
 import time
 from bt_server import BtServer
+from logger import *
 
 bt_server = BtServer()
 shutdown_flag = False
@@ -10,14 +11,14 @@ shutdown_flag = False
 def main():
 
     def signal_handler(sig, frame):
-        print('[ml] SIGINT received')
+        log(TAG_ML, MSG_SIGINT_RECEIVED)
         os.killpg(os.getpgid(pd_process.pid), signal.SIGINT)
-        print('[looper core] stopped')
+        log(TAG_LOOPER_CORE, MSG_STOPPED)
         bt_server.join()
         global shutdown_flag
         shutdown_flag = True
 
-    print('[ml] running...')
+    log(TAG_ML, MSG_RUNNING)
 
     # start bluetooth server
     bt_server.start()
@@ -29,7 +30,7 @@ def main():
 
     # start looper core
     pd_process = subprocess.Popen('sudo pd -nogui -path /home/pi/mighty_looper/puredata/pd_externals/ -lib mighty_looper_lib -audiobuf 5 /home/pi/mighty_looper/puredata/mighty_looper.pd > /dev/null 2>&1', shell=True, preexec_fn=os.setpgrp)
-    print('[looper core] running...')
+    log(TAG_LOOPER_CORE, MSG_RUNNING)
 
     # register handler for interrupt signal
     signal.signal(signal.SIGINT, signal_handler)
@@ -38,7 +39,7 @@ def main():
     while not shutdown_flag:
         time.sleep(1)
 
-    print('[ml] bye')
+    log(TAG_ML, MSG_BYE)
 
 if __name__ == '__main__':
     main()
