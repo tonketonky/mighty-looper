@@ -39,6 +39,8 @@ const val CMD_TRACK_FLAG_SWITCH_LOOPING = "trck_flag_switch_looping"
 const val CMD_TRACK_SWITCH_MUTE = "trck_switch_mute"
 const val CMD_TRACK_FLAG_SWAP_VERSIONS = "trck_flag_swap_versions"
 
+const val CMD_SHUTDOWN = "shutdown"
+
 // logger tags
 const val TAG_LOOPER_SERVICE = "LOOPER SERVICE"
 const val TAG_CONTROLS = "CONTROLS"

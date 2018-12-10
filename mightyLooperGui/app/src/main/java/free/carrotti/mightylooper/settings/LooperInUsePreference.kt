@@ -26,6 +26,8 @@ import kotlinx.android.synthetic.main.dialog_title.view.*
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import free.carrotti.mightylooper.utils.ACT_UPDATE_LOOPER_LIST
 import free.carrotti.mightylooper.service.LooperService
+import free.carrotti.mightylooper.utils.CMD_SHUTDOWN
+import free.carrotti.mightylooper.utils.buildMessage
 import kotlin.collections.ArrayList
 import kotlin.properties.Delegates
 
@@ -131,6 +133,16 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
             val findLoopersButton = mSelectLooperDialogView.findViewById<Button>(R.id.findLoopersButton)
             findLoopersButton.setOnClickListener {
                 triggerFindingLoopers()
+            }
+
+            val disconnectButton = mSelectLooperDialogView.findViewById<Button>(R.id.disconnectButton)
+            disconnectButton.setOnClickListener {
+                // TODO: disconnect
+            }
+
+            val shutdownButton = mSelectLooperDialogView.findViewById<Button>(R.id.shutdownButton)
+            shutdownButton.setOnClickListener {
+                mLooperService.write(buildMessage(CMD_SHUTDOWN, emptyList()))
             }
 
             // create dialog

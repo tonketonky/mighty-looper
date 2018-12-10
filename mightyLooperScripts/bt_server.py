@@ -14,6 +14,11 @@ SPP_UUID = '1e0ca4ea-299d-4335-93eb-27fcfe7fa848'
 
 BT_SERVICE_NAME = 'Mighty Looper BT Service'
 
+SCRIPTS_DIR_ENV_VAR = 'SCRIPTS_DIR'
+PROFILE_ENV_VAR = 'PROFILE'
+
+CMD_SHUTDOWN = '[cmd/shutdown]'
+
 class BtServer(threading.Thread):
     'Bluetooth server for connection with MightyLooper GUI Android app'
 
@@ -54,9 +59,23 @@ class BtServer(threading.Thread):
                         continue
                     else:
                         raise e
-                # data received, write to serial bridge
-                log(TAG_BT_SERVER, MSG_GUI_TO_CORE + data.decode("utf-8"))
-                self.serial_bridge.write(data)
+                # data received
+                if data.decode('utf-8').strip() == CMD_SHUTDOWN:
+                    # is terminate command
+                    if os.getenv(PROFILE_ENV_VAR) == 'dev':
+                        # running in dev profile, just log requested shutdown and set shutdown_opt to empty string to avoid shutting down
+                        log(TAG_BT_SERVER, MSG_SHUTDOWN_COMMAND_RECEIVED_DEV_PROF)
+                        shutdown_opt = ''
+                    else:
+                        # running in prod profile, set shutdown_opt to  '--shutdown'
+                        log(TAG_BT_SERVER, MSG_SHUTDOWN_COMMAND_RECEIVED_PROD_PROF)
+                        shutdown_opt = '--shutdown'
+                    # execute stop-looper.sh
+                    os.system('{}/stop-looper.sh {} > /dev/null'.format(os.getenv(SCRIPTS_DIR_ENV_VAR), shutdown_opt))
+                else:
+                    # is NOT terminate command, write data to serial bridge
+                    log(TAG_BT_SERVER, MSG_GUI_TO_CORE + data.decode('utf-8'))
+                    self.serial_bridge.write(data)
             else:
                 # listen for connection
                 try:
@@ -144,5 +163,3 @@ class SerialBridge(threading.Thread):
         log(TAG_SERIAL_BRIDGE, MSG_PSEUDO_TERMINALS_DESTROYED)
         super(SerialBridge, self).join(timeout)
         log(TAG_SERIAL_BRIDGE, MSG_STOPPED)
-
-

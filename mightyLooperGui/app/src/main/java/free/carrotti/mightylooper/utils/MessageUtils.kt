@@ -11,8 +11,16 @@ import android.content.Intent
  */
 
 fun buildMessage(command: String, args: List<Any>): String {
-    val argsStr = args.joinToString(separator = MESSAGE_LITERALS_DELIMITER) { arg -> if (arg is String) "$MESSAGE_STR_ARG_SIGN$arg" else "$MESSAGE_NUM_ARG_SIGN$arg" }
-    return "$MESSAGE_BEGINNING$command$MESSAGE_LITERALS_DELIMITER$argsStr$MESSAGE_END"
+    val argsStr =
+            if (args.isNotEmpty())
+                MESSAGE_LITERALS_DELIMITER + args.joinToString(separator = MESSAGE_LITERALS_DELIMITER) { arg ->
+                    if (arg is String)
+                        "$MESSAGE_STR_ARG_SIGN$arg"
+                    else
+                        "$MESSAGE_NUM_ARG_SIGN$arg" }
+            else
+                ""
+    return "$MESSAGE_BEGINNING$command$argsStr$MESSAGE_END"
 }
 
 fun getIntentFromMessage(msg: String): Intent? {

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+PROD_PROFILE="prod"
+DEV_PROFILE="dev"
+
 function help {
     echo "Usage examples:"
     echo "1) ./start-looper.sh --profile prod (runs app in prod profile - default)"
@@ -8,14 +11,18 @@ function help {
     echo ""
 }
 
-function set_prod_paths {
+function set_prod_env {
+    # set env var for profile
+    export PROFILE=${PROD_PROFILE}
     # set env var for scripts dir
-    export SCRIPTS_DIR="$LOOPER_HOME/scripts"
+    export SCRIPTS_DIR="$LOOPER_HOME/bin"
     # set env var for core dir
     export CORE_DIR="$LOOPER_HOME/core"
 }
 
-function set_dev_paths {
+function set_dev_env {
+    # set env var for profile
+    export PROFILE=${DEV_PROFILE}
     # set env var for scripts dir
     export SCRIPTS_DIR="$LOOPER_HOME/mightyLooperScripts"
     # set env var for core dir
@@ -31,13 +38,13 @@ export LOG_DIR="$LOOPER_HOME/log"
 if [[ $# == 2 && $1 == "--profile" ]]
     then
         case $2 in
-            prod)
+            $PROD_PROFILE)
             # prod profile
-            set_prod_paths
+            set_prod_env
             ;;
-            dev)
+            $DEV_PROFILE)
             # dev profile
-            set_dev_paths
+            set_dev_env
             ;;
             *)
             # unknown profile
@@ -55,7 +62,7 @@ elif [[ $# > 0 ]]
         exit 1
 else
     # no args, set paths for prod profile as default
-    set_prod_paths
+    set_prod_env
 fi
 
 # if doesn't exist create log dir
@@ -67,4 +74,3 @@ echo "Mighty Looper started"
 
 # save process id to hidden file
 echo $! > $SCRIPTS_DIR/.ml.pid
-
