@@ -28,6 +28,6 @@ MSG_SLAVE_CLOSED = 'slave closed'
 MSG_STOPPED = 'stopped'
 
 # log to console
-def log(module, message):
-    print('[{}] {}'.format(module, message))
+def log(tag, message):
+    print('[{}] {}'.format(tag, message))
     sys.stdout.flush()
