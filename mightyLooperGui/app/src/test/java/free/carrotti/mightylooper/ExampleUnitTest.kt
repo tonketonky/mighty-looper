@@ -1,4 +1,4 @@
-package free.pstruho.mightylooper
+package free.carrotti.mightylooper
 
 import org.junit.Test
 

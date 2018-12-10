@@ -1,4 +1,4 @@
-package free.pstruho.mightylooper.settings
+package free.carrotti.mightylooper.settings
 
 import android.content.*
 import android.os.Bundle
@@ -7,9 +7,9 @@ import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.preference.Preference
 import android.support.v7.preference.PreferenceDialogFragmentCompat
 import android.support.v7.preference.PreferenceFragmentCompat
-import free.pstruho.mightylooper.R
-import free.pstruho.mightylooper.service.LooperService
-import free.pstruho.mightylooper.utils.*
+import free.carrotti.mightylooper.R
+import free.carrotti.mightylooper.service.LooperService
+import free.carrotti.mightylooper.utils.*
 
 class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
 

@@ -1,4 +1,4 @@
-package free.pstruho.mightylooper
+package free.carrotti.mightylooper
 
 import android.support.v7.app.AppCompatActivity
 import android.support.v4.app.Fragment
@@ -8,12 +8,12 @@ import android.view.Menu
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_main.*
 import android.content.Intent
-import free.pstruho.mightylooper.service.LooperService
+import free.carrotti.mightylooper.service.LooperService
 import android.os.*
 import android.support.v7.app.AlertDialog
-import free.pstruho.mightylooper.controls.ControlsFragment
-import free.pstruho.mightylooper.mixer.MixerFragment
-import free.pstruho.mightylooper.settings.SettingsFragment
+import free.carrotti.mightylooper.controls.ControlsFragment
+import free.carrotti.mightylooper.mixer.MixerFragment
+import free.carrotti.mightylooper.settings.SettingsFragment
 import kotlinx.android.synthetic.main.dialog_title.view.*
 
 class MainActivity : AppCompatActivity() {

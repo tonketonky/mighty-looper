@@ -9,35 +9,35 @@
     android:rowCount="4"
     tools:context=".MainActivity" >
 
-    <free.pstruho.mightylooper.controls.TrackControls
+    <free.carrotti.mightylooper.controls.TrackControls
         android:id="@+id/controlsT1Ch1"
         app:trackId="t1"
         app:channelId="ch1" />
-    <free.pstruho.mightylooper.controls.TrackControls
+    <free.carrotti.mightylooper.controls.TrackControls
         android:id="@+id/controlsT2Ch1"
         app:trackId="t2"
         app:channelId="ch1" />
-    <free.pstruho.mightylooper.controls.TrackControls
+    <free.carrotti.mightylooper.controls.TrackControls
         android:id="@+id/controlsT3Ch1"
         app:trackId="t3"
         app:channelId="ch1" />
-    <free.pstruho.mightylooper.controls.TrackControls
+    <free.carrotti.mightylooper.controls.TrackControls
         android:id="@+id/controlsT4Ch1"
         app:trackId="t4"
         app:channelId="ch1" />
-    <free.pstruho.mightylooper.controls.TrackControls
+    <free.carrotti.mightylooper.controls.TrackControls
         android:id="@+id/controlsT1Ch2"
         app:trackId="t1"
         app:channelId="ch2" />
-    <free.pstruho.mightylooper.controls.TrackControls
+    <free.carrotti.mightylooper.controls.TrackControls
         android:id="@+id/controlsT2Ch2"
         app:trackId="t2"
         app:channelId="ch2" />
-    <free.pstruho.mightylooper.controls.TrackControls
+    <free.carrotti.mightylooper.controls.TrackControls
         android:id="@+id/controlsT3Ch2"
         app:trackId="t3"
         app:channelId="ch2" />
-    <free.pstruho.mightylooper.controls.TrackControls
+    <free.carrotti.mightylooper.controls.TrackControls
         android:id="@+id/controlsT4Ch2"
         app:trackId="t4"
         app:channelId="ch2" />

@@ -1,4 +1,4 @@
-package free.pstruho.mightylooper.settings
+package free.carrotti.mightylooper.settings
 
 import android.content.Context
 import android.content.res.TypedArray

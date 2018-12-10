@@ -1,4 +1,4 @@
-package free.pstruho.mightylooper.service
+package free.carrotti.mightylooper.service
 
 import android.app.Service
 import android.bluetooth.BluetoothAdapter
@@ -12,7 +12,7 @@ import android.support.v4.content.LocalBroadcastManager
 import android.bluetooth.BluetoothSocket
 import android.os.*
 import android.util.Log
-import free.pstruho.mightylooper.utils.*
+import free.carrotti.mightylooper.utils.*
 import java.io.*
 import java.lang.IllegalArgumentException
 

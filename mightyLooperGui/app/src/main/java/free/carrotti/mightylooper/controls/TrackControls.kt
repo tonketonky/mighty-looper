@@ -1,15 +1,15 @@
-package free.pstruho.mightylooper.controls
+package free.carrotti.mightylooper.controls
 
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.Button
 import android.widget.GridLayout
 import android.support.v4.content.ContextCompat
-import free.pstruho.mightylooper.R
-import free.pstruho.mightylooper.utils.CMD_RECORDING_FLAG
-import free.pstruho.mightylooper.utils.CMD_RECORDING_STOP
-import free.pstruho.mightylooper.utils.CMD_TRACK_FLAG_SWITCH_LOOPING
-import free.pstruho.mightylooper.utils.CMD_TRACK_SWITCH_MUTE
+import free.carrotti.mightylooper.R
+import free.carrotti.mightylooper.utils.CMD_RECORDING_FLAG
+import free.carrotti.mightylooper.utils.CMD_RECORDING_STOP
+import free.carrotti.mightylooper.utils.CMD_TRACK_FLAG_SWITCH_LOOPING
+import free.carrotti.mightylooper.utils.CMD_TRACK_SWITCH_MUTE
 
 class TrackControls constructor(context: Context, attrs: AttributeSet) : GridLayout(context, attrs) {
 

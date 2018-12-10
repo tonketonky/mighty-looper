@@ -6,12 +6,12 @@
         android:key="click_preference"
         android:title="Click" />
 
-    <free.pstruho.mightylooper.settings.TempoPreference
+    <free.carrotti.mightylooper.settings.TempoPreference
         android:key="@string/tempo_preference_key"
         android:title="Tempo"
         android:defaultValue="90" />
 
-    <free.pstruho.mightylooper.settings.LooperInUsePreference
+    <free.carrotti.mightylooper.settings.LooperInUsePreference
         android:key="looper_in_use_preference"
         android:title="Looper in use"
         android:defaultValue="Disconnected" />

@@ -1,4 +1,4 @@
-package free.pstruho.mightylooper.settings
+package free.carrotti.mightylooper.settings
 
 import android.app.Activity
 import android.app.Dialog
@@ -15,7 +15,7 @@ import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
 import android.widget.Button
 import android.widget.TextView
-import free.pstruho.mightylooper.R
+import free.carrotti.mightylooper.R
 import java.util.*
 import android.os.Bundle
 import android.os.IBinder
@@ -24,8 +24,8 @@ import android.os.Parcelable
 import android.view.*
 import kotlinx.android.synthetic.main.dialog_title.view.*
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
-import free.pstruho.mightylooper.utils.ACT_UPDATE_LOOPER_LIST
-import free.pstruho.mightylooper.service.LooperService
+import free.carrotti.mightylooper.utils.ACT_UPDATE_LOOPER_LIST
+import free.carrotti.mightylooper.service.LooperService
 import kotlin.collections.ArrayList
 import kotlin.properties.Delegates
 

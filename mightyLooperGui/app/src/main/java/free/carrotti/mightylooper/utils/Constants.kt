@@ -1,4 +1,4 @@
-package free.pstruho.mightylooper.utils
+package free.carrotti.mightylooper.utils
 
 // connection constants
 const val SPP_UUID = "1e0ca4ea-299d-4335-93eb-27fcfe7fa848"

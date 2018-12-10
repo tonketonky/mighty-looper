@@ -1,11 +1,11 @@
-package free.pstruho.mightylooper.mixer
+package free.carrotti.mightylooper.mixer
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import free.pstruho.mightylooper.R
+import free.carrotti.mightylooper.R
 
 class MixerFragment : Fragment() {
 

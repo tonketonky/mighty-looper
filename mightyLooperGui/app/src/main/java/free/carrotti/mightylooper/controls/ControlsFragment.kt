@@ -1,4 +1,4 @@
-package free.pstruho.mightylooper.controls
+package free.carrotti.mightylooper.controls
 
 import android.content.*
 import android.os.Bundle
@@ -9,9 +9,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
-import free.pstruho.mightylooper.R
-import free.pstruho.mightylooper.service.LooperService
-import free.pstruho.mightylooper.utils.*
+import free.carrotti.mightylooper.R
+import free.carrotti.mightylooper.service.LooperService
+import free.carrotti.mightylooper.utils.*
 
 class ControlsFragment : Fragment() {
 

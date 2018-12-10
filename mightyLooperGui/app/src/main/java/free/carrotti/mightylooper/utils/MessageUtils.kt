@@ -1,4 +1,4 @@
-package free.pstruho.mightylooper.utils
+package free.carrotti.mightylooper.utils
 
 import android.content.Intent
 
