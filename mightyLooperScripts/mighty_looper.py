@@ -5,7 +5,8 @@ import time
 from bt_server import BtServer
 from logger import *
 
-LOOPER_HOME_ENV_VAR = 'LOOPER_HOME'
+CORE_DIR_ENV_VAR = 'CORE_DIR'
+LOG_DIR_ENV_VAR = 'LOG_DIR'
 
 bt_server = BtServer()
 shutdown_flag = False
@@ -36,8 +37,9 @@ def main():
         pass
 
     # start looper core
-    looper_home = os.getenv(LOOPER_HOME_ENV_VAR)
-    pd_process = subprocess.Popen('sudo pd -nogui -path /home/pi/mighty_looper/puredata/pd_externals/ -lib mighty_looper_lib -audiobuf 5 /home/pi/mighty_looper/puredata/mighty_looper.pd 2>>{}/log/mighty-looper-core-console.log'.format(looper_home, looper_home), shell=True, preexec_fn=os.setpgrp)
+    core_dir = os.getenv(CORE_DIR_ENV_VAR)
+    log_dir = os.getenv(LOG_DIR_ENV_VAR)
+    pd_process = subprocess.Popen('sudo pd -nogui -path {}/pd_externals/ -lib mighty_looper_lib -audiobuf 5 {}/mighty_looper.pd 2>>{}/mighty-looper-core-console.log'.format(core_dir, core_dir, log_dir, log_dir), shell=True, preexec_fn=os.setpgrp)
     log(TAG_LOOPER_CORE, MSG_RUNNING)
 
     # register handler for interrupt signal
