@@ -172,7 +172,7 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
             if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_OK) {
                 triggerFindingLoopers()
             } else {
-                showAlert("Not much fun without Bluetooth though...")
+                showAlert("You can't connect to looper without Bluetooth enabled...")
             }
         }
 
