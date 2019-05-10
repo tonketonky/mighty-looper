@@ -163,6 +163,7 @@ class LooperService : Service() {
                 return
             }
             manageConnectedSocket(mSocket)
+            write(buildMessage(CMD_SYNC))
         }
 
         fun cancel() {

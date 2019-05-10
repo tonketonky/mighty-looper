@@ -142,7 +142,7 @@ class LooperInUsePreference(context: Context, attrs: AttributeSet) : DialogPrefe
 
             val shutdownButton = mSelectLooperDialogView.findViewById<Button>(R.id.shutdownButton)
             shutdownButton.setOnClickListener {
-                mLooperService.write(buildMessage(CMD_SHUTDOWN, emptyList()))
+                mLooperService.write(buildMessage(CMD_SHUTDOWN))
             }
 
             // create dialog

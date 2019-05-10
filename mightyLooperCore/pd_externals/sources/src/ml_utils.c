@@ -1,5 +1,6 @@
 #include "m_pd.h" 
 #include "stdlib.h"
+#include "string.h"
 #include "ml_definitions.h"
 
 /*****************************************************************
@@ -64,4 +65,25 @@ t_symbol *get_table_name_symb(t_symbol *phrase, t_symbol *channel, t_symbol *tra
     free(table_name_str);
 
     return table_name_symb;
+}
+
+void split(char *str, char *delim, char **tokens) {
+    int counter = 0;
+    
+    char *token = strtok(str, delim);
+    tokens[counter++] = token;
+    
+    while(token != NULL) {
+        token = strtok(NULL, delim);
+        tokens[counter++] = token;
+    } 
+}
+
+char *concat(char **strings, char *delim, char *dest_str) {
+    int counter = 0;
+    strcpy(dest_str, strings[counter++]);
+    while(strings[counter] != NULL) {
+        strcat(dest_str, delim);
+        strcat(dest_str, strings[counter++]);
+    }
 }

@@ -57,6 +57,10 @@ void init_cmd_dest_map(void) {
     add_cmd_dest_pair(CMD_SET_TEMPO, DEST_CLICK);
     add_cmd_dest_pair(CMD_SET_TIME_SIGNATURE, DEST_CLICK);
 
+    char *joined_dests[64];
+    char *dests[4] = { DEST_PLAYER, DEST_RECORDER, DEST_CLICK };
+    concat(dests, ",", joined_dests);
+    add_cmd_dest_pair(CMD_SYNC, strdup(joined_dests));
 }
 
 /**

@@ -10,7 +10,7 @@ import android.content.Intent
     example "[cmd/msg_code/#666/$hellYeah]"
  */
 
-fun buildMessage(command: String, args: List<Any>): String {
+fun buildMessage(command: String, args: List<Any> = emptyList()): String {
     val argsStr =
             if (args.isNotEmpty())
                 MESSAGE_LITERALS_DELIMITER + args.joinToString(separator = MESSAGE_LITERALS_DELIMITER) { arg ->

@@ -135,19 +135,26 @@ void ml_message_handler_process_input(t_ml_message_handler *x, t_floatarg receiv
                 }
 
                 // check if cmd isn't null due to invalid event code
-                if(cmd != NULL) {
+                /*if(cmd != NULL) {
                     dest = get_dest_for_cmd(cmd);
+                }*/
+                char *dests[8];
+                split(get_dest_for_cmd(cmd), ",", dests);
+
+                int counter = 0;
+                while(dests[counter] != NULL) {
+                    outlet_symbol(x->cmd_dest_out, gensym(dests[counter++]));
+                    outlet_anything(x->cmd_out, gensym(cmd), x->num_of_literals_processed - 2, x->cmd_args);
                 }
 
-                post(cmd);
                 // check if dest isn't null due to cmd being null
-                if(dest != NULL) {
+                /*if(dest != NULL) {
                     post(dest);
                     // output command along with arguments to destination
                     t_symbol *dest = gensym(get_dest_for_cmd(cmd));
                     outlet_symbol(x->cmd_dest_out, dest);
                     outlet_anything(x->cmd_out, gensym(cmd), x->num_of_literals_processed - 2, x->cmd_args);
-                }
+                }*/
                 // reset variables for next processing
                 x->num_of_literals_processed = 0;
                 x->is_processing = 0;
